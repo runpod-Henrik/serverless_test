@@ -1,5 +1,5 @@
 {
-  "repo": ""
+  "repo": "https://github.com/runpod-Henrik/serverless_test",
   "test_command": "pytest tests/test_checkout.py",
   "runs": 100,
   "parallelism": 8

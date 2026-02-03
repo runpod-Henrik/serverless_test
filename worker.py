@@ -35,7 +35,7 @@ def handler(job):
     """
     Expected input:
     {
-      "repo": "https://github.com/org/project.git",
+      "repo": "https://github.com/runpod-Henrik/serverless_test",
       "test_command": "pytest tests/test_flaky.py",
       "runs": 50,
       "parallelism": 5
