@@ -1,0 +1,72 @@
+name: Flaky Test Detector
+
+on:
+  workflow_run:
+    workflows: ["CI"]  # Replace with your test workflow name
+    types:
+      - completed
+
+jobs:
+  detect-flaky-tests:
+    runs-on: ubuntu-latest
+    # Only run if the workflow failed
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install runpod requests
+
+      - name: Extract failed test information
+        id: extract-tests
+        run: |
+          # Get the workflow run logs and extract failed tests
+          # This is a simplified version - adjust based on your test framework
+          echo "failed_tests=pytest tests/" >> $GITHUB_OUTPUT
+          echo "pr_number=${{ github.event.workflow_run.pull_requests[0].number }}" >> $GITHUB_OUTPUT
+
+      - name: Run flaky test detector
+        id: flaky-detector
+        env:
+          RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+          RUNPOD_ENDPOINT_ID: ${{ secrets.RUNPOD_ENDPOINT_ID }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TEST_COMMAND: ${{ steps.extract-tests.outputs.failed_tests }}
+        run: |
+          python scripts/run_flaky_detector.py
+
+      - name: Post results to PR
+        if: steps.extract-tests.outputs.pr_number != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.extract-tests.outputs.pr_number }}
+        run: |
+          python scripts/report_to_github.py
+
+      - name: Send Slack notification
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          python scripts/report_to_slack.py
+
+      - name: Upload detailed results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-test-results
+          path: flaky_test_results.json
+          retention-days: 30

@@ -7,6 +7,8 @@ A RunPod serverless function that detects flaky tests by running them multiple t
 - **Parallel Test Execution**: Run tests multiple times concurrently to quickly identify flakiness
 - **Seed Randomization**: Each test run uses a unique random seed to expose timing-dependent bugs
 - **Automatic Dependency Installation**: Installs requirements.txt automatically from cloned repositories
+- **CI/CD Integration**: Automatically detect flaky tests when CI/CD tests fail (GitHub Actions, GitLab CI, etc.)
+- **Multi-Channel Reporting**: Post results to PR comments, Slack, Discord, or CI/CD logs
 - **Comprehensive Error Handling**: Robust error handling for network issues, timeouts, and test failures
 - **Resource Cleanup**: Automatic cleanup of temporary directories and working directory restoration
 - **Security Hardened**: Protected against command injection with proper input validation
@@ -131,6 +133,38 @@ The serverless function accepts the following input parameters:
   "parallelism": 8
 }
 ```
+
+## CI/CD Integration
+
+The flaky test detector can automatically run when your CI/CD tests fail, helping you distinguish between real bugs and flaky tests.
+
+### Quick Start (GitHub Actions)
+
+1. **Add secrets** to your repository:
+   - `RUNPOD_API_KEY` - Your RunPod API key
+   - `RUNPOD_ENDPOINT_ID` - Your deployed endpoint ID
+   - `SLACK_WEBHOOK_URL` - (Optional) For Slack notifications
+
+2. **Copy the workflow file**:
+   ```bash
+   # The workflow is already in .github/workflows/flaky-test-detector.yml
+   # Update line 4 to match your CI workflow name
+   ```
+
+3. **Test it**:
+   - Create a PR with a failing test
+   - Wait for CI to fail
+   - Flaky detector automatically runs and comments on the PR
+
+### Features
+
+- ✅ Automatically triggers on test failures
+- ✅ Posts detailed results as PR comments with severity indicators
+- ✅ Sends Slack/Discord notifications
+- ✅ Uploads detailed results as artifacts
+- ✅ Distinguishes between flaky tests and real bugs
+
+**📖 Full CI/CD Integration Guide**: See [docs/CICD_INTEGRATION.md](docs/CICD_INTEGRATION.md) for detailed setup instructions, configuration options, and troubleshooting.
 
 ## Deployment to RunPod
 
