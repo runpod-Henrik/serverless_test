@@ -334,6 +334,53 @@ pytest tests/ --cov=. --cov-report=html
 open htmlcov/index.html
 ```
 
+### GitHub Actions import errors
+
+**Error:**
+```
+ImportError while importing test module
+'tests/test_config.py'
+```
+
+**Problem:** Tests can't import project modules in CI because the project root isn't in Python's import path.
+
+**Solution 1: Set PYTHONPATH** (recommended)
+```yaml
+- name: Run tests
+  env:
+    PYTHONPATH: ${{ github.workspace }}
+  run: |
+    pytest tests/
+```
+
+**Solution 2: Install as editable package**
+```yaml
+- name: Install package
+  run: pip install -e .
+
+- name: Run tests
+  run: pytest tests/
+```
+
+**Why this happens:**
+- **Locally:** Current directory is automatically in `sys.path` when running pytest
+- **GitHub Actions:** Project root must be explicitly added to `PYTHONPATH`
+- **The workspace path:** `${{ github.workspace }}` = `/home/runner/work/project/project`
+
+**Testing the fix locally:**
+```bash
+# Simulate CI environment
+cd /tmp
+git clone https://github.com/your-user/serverless_test.git
+cd serverless_test
+
+# This will fail (like CI)
+pytest tests/
+
+# This works (with PYTHONPATH)
+PYTHONPATH=. pytest tests/
+```
+
 ## References
 
 - [Ruff Documentation](https://docs.astral.sh/ruff/)

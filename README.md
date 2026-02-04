@@ -508,6 +508,33 @@ runpod.Endpoint("your-endpoint-id").run({
 - Avoid special characters in test commands
 - Use proper quoting for complex test commands
 
+### GitHub Actions Import Errors
+
+**Error**: `ImportError while importing test module 'tests/test_config.py'`
+
+**Problem**: Tests can't find project modules (`config`, `database`, `worker`) because the project root isn't in Python's import path in GitHub Actions.
+
+**Solution**: Add `PYTHONPATH` environment variable to your test job:
+
+```yaml
+- name: Run tests
+  env:
+    PYTHONPATH: ${{ github.workspace }}
+  run: |
+    pytest tests/
+```
+
+**Why this happens**:
+- Locally: Current directory is automatically in `sys.path`
+- GitHub Actions: Project root must be explicitly added to `PYTHONPATH`
+- The fix ensures Python looks in the workspace root for imports
+
+**Alternative solution**: Install as editable package:
+```yaml
+- name: Install package
+  run: pip install -e .
+```
+
 ## Security Considerations
 
 - Repository URLs are validated to prevent command injection

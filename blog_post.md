@@ -370,6 +370,47 @@ def run_test_once(
 
 **Result:** Every PR now has automated quality checks.
 
+### GitHub Actions Import Issue
+
+Hit a subtle but common issue when setting up the CI pipeline:
+
+**Error:**
+```
+ImportError while importing test module
+'tests/test_config.py'
+```
+
+**The Problem:**
+GitHub Actions runs tests in `/home/runner/work/serverless_test/serverless_test`, but Python can't find project modules like `config`, `database`, and `worker` because the project root isn't in the import path.
+
+**Works locally:**
+```bash
+pytest tests/  # ✅ Works - current directory is in sys.path
+```
+
+**Fails in CI:**
+```bash
+pytest tests/  # ❌ Fails - project root not in PYTHONPATH
+```
+
+**The Fix:**
+Set `PYTHONPATH` to the workspace directory:
+
+```yaml
+- name: Run tests with coverage
+  env:
+    PYTHONPATH: ${{ github.workspace }}  # Add this!
+  run: |
+    pytest tests/test_config.py tests/test_database.py tests/test_worker.py
+```
+
+**Why this works:**
+- `${{ github.workspace }}` = `/home/runner/work/serverless_test/serverless_test`
+- Python now looks in project root for imports
+- Tests can import `from config import Config`
+
+**Lesson learned:** CI environments are more strict about import paths than local development. Always explicitly set `PYTHONPATH` when running tests in GitHub Actions if you're not using `pip install -e .`
+
 ## The Results: Production-Ready
 
 After all iterations, we have:
