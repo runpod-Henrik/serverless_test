@@ -4,7 +4,26 @@ Local testing script for the flaky test detector.
 This simulates what RunPod does without needing the RunPod infrastructure.
 """
 import json
-from worker import handler
+import sys
+import os
+
+# Import handler directly by loading the module without starting serverless
+import importlib.util
+spec = importlib.util.spec_from_file_location("worker_module", "worker.py")
+worker_module = importlib.util.module_from_spec(spec)
+sys.modules["worker_module"] = worker_module
+
+# Temporarily disable runpod.serverless.start
+import runpod
+original_start = runpod.serverless.start
+runpod.serverless.start = lambda x: None
+
+# Now load the worker module
+spec.loader.exec_module(worker_module)
+handler = worker_module.handler
+
+# Restore original
+runpod.serverless.start = original_start
 
 
 def main():
