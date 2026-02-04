@@ -55,6 +55,8 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run tests with coverage
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           pytest tests/test_config.py tests/test_database.py tests/test_worker.py \
             -v \
