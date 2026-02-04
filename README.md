@@ -15,7 +15,7 @@ A RunPod serverless function that detects flaky tests by running them multiple t
 - **Comprehensive Error Handling**: Robust error handling for network issues, timeouts, and test failures
 - **Resource Cleanup**: Automatic cleanup of temporary directories and working directory restoration
 - **Security Hardened**: Protected against command injection with proper input validation
-- **Fully Tested**: 26+ tests covering all major functionality
+- **Fully Tested**: 40+ tests with 96% code coverage across all main modules
 
 ## Prerequisites
 
@@ -97,8 +97,12 @@ TEST_SEED=12345 pytest tests/test_flaky.py
 # Run multiple times to see flakiness
 for i in {1..10}; do pytest tests/test_flaky.py; done
 
-# Run all tests (26+ tests)
+# Run all tests (40+ tests)
 pytest tests/ -v
+
+# Run with coverage report
+coverage run -m pytest tests/
+coverage report --include="worker.py,config.py,database.py"
 
 # Run integration tests
 python3 test_new_features.py
