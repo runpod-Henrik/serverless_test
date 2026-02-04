@@ -1,14 +1,42 @@
-runpod
-pytest
-pyyaml
-streamlit
-plotly
-pandas
+# Core dependencies
+runpod==1.8.1
+pytest==9.0.2
+PyYAML==6.0.3
+streamlit==1.41.1
+plotly==5.24.1
+pandas==2.2.3
 
-# Development tools
-ruff>=0.1.0
-mypy>=1.8.0
-coverage>=7.4.0
-pytest-cov>=4.1.0
-types-PyYAML>=6.0.0
-types-requests>=2.31.0
+# Development tools - Linting and formatting
+ruff==0.9.1
+
+# Development tools - Type checking
+mypy==1.14.1
+types-PyYAML==6.0.12.20241230
+types-requests==2.32.0.20241231
+
+# Development tools - Testing and coverage
+coverage==7.13.3
+pytest-cov==7.0.0
+
+# =============================================================================
+# Version Pinning Strategy
+# =============================================================================
+# All versions are pinned to specific releases (using ==) for reproducibility.
+# This ensures:
+# - Consistent behavior across all environments (local, CI/CD, production)
+# - No unexpected breaking changes from package updates
+# - Reproducible builds and deployments
+#
+# To update dependencies:
+# 1. Test locally: pip install --upgrade <package>
+# 2. Verify all tests pass: pytest tests/
+# 3. Update this file with new version
+# 4. Test in CI before merging
+#
+# To see available updates:
+# pip list --outdated
+#
+# To update all dependencies (use with caution):
+# pip install --upgrade -r requirements.txt
+# pip freeze > requirements.txt
+# =============================================================================

@@ -49,6 +49,8 @@ cd serverless_test
 uv sync
 ```
 
+**Note on Dependencies:** All package versions are pinned to specific releases (e.g., `pytest==9.0.2`) for reproducibility and stability. See [DEPENDENCIES.md](DEPENDENCIES.md) for version management strategy and update procedures.
+
 ## Configuration
 
 Customize flaky test detector behavior per-repository with `.flaky-detector.yml`:

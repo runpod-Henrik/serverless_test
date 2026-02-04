@@ -496,6 +496,7 @@ Imagine this scenario:
 6. **Type safety matters** - Type hints catch bugs before they reach production
 7. **Linting saves time** - Automated code quality checks prevent bikeshedding
 8. **Coverage is insurance** - 90%+ coverage gives confidence in refactoring
+9. **Pin dependencies** - Exact versions (`pytest==9.0.2`) ensure reproducibility
 
 ### Design Decisions That Worked
 
@@ -504,6 +505,7 @@ Imagine this scenario:
 3. **Random seeds** - Each run gets unique conditions
 4. **Severity classification** - Not all failures are equal
 5. **Multiple notification channels** - Meet teams where they are
+6. **Pinned dependencies** - Exact versions ensure reproducible builds
 
 ### What I'd Do Differently
 
@@ -567,8 +569,9 @@ That's the power of serverless architecture done right.
 ## Stats
 
 - **Lines of Code:** ~1,500 (including tests, scripts, and workflows)
-- **Test Suite:** 40+ tests with 96% code coverage
+- **Test Suite:** 40+ tests with 96.7% code coverage
 - **Code Quality:** 100% type coverage, linted with ruff, formatted
+- **Dependencies:** 12 pinned packages (6 core, 6 dev tools)
 - **Docker Image Size:** 285 MB
 - **Cold Start Time:** ~15 seconds
 - **Test Execution:** 50 tests in ~2 minutes (5 parallel workers)
