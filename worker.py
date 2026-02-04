@@ -1,18 +1,18 @@
 import os
 import subprocess
 import tempfile
-import json
+import shlex
 import random
 import runpod
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
-def run_test_once(cmd, env_overrides, attempt):
+def run_test_once(cmd_list, env_overrides, attempt):
     env = os.environ.copy()
     env.update(env_overrides)
     try:
         result = subprocess.run(
-            cmd, shell=True, capture_output=True, text=True, env=env, timeout=300
+            cmd_list, capture_output=True, text=True, env=env, timeout=300
         )
         return {
             "attempt": attempt,
@@ -48,21 +48,35 @@ def handler(job):
     parallelism = int(inp.get("parallelism", 4))
     workdir = tempfile.mkdtemp()
     results = []
-    # Clone repo
-    subprocess.run(f"git clone {repo} {workdir}", shell=True, check=True)
+
+    # Validate repo URL (basic check for https:// or git@)
+    if not (repo.startswith("https://") or repo.startswith("git@")):
+        raise ValueError(f"Invalid repository URL: {repo}")
+
+    # Clone repo - using list arguments to prevent command injection
+    subprocess.run(["git", "clone", repo, workdir], check=True, capture_output=True)
+
+    # Parse test command safely
+    test_command_list = shlex.split(test_command)
+
+    original_cwd = os.getcwd()
     os.chdir(workdir)
-    with ThreadPoolExecutor(max_workers=parallelism) as executor:
-        futures = []
-        for i in range(runs):
-            env_overrides = {
-                "TEST_SEED": str(random.randint(1, 1_000_000)),
-                "ATTEMPT": str(i),
-            }
-            futures.append(
-                executor.submit(run_test_once, test_command, env_overrides, i)
-            )
-        for future in as_completed(futures):
-            results.append(future.result())
+    try:
+        with ThreadPoolExecutor(max_workers=parallelism) as executor:
+            futures = []
+            for i in range(runs):
+                env_overrides = {
+                    "TEST_SEED": str(random.randint(1, 1_000_000)),
+                    "ATTEMPT": str(i),
+                }
+                futures.append(
+                    executor.submit(run_test_once, test_command_list, env_overrides, i)
+                )
+            for future in as_completed(futures):
+                results.append(future.result())
+    finally:
+        # Restore original working directory
+        os.chdir(original_cwd)
     failures = [r for r in results if not r["passed"]]
     summary = {
         "total_runs": runs,

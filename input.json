@@ -1,6 +1,6 @@
 {
   "repo": "https://github.com/runpod-Henrik/serverless_test",
-  "test_command": "pytest tests/test_checkout.py",
+  "test_command": "pytest tests/test_flaky.py",
   "runs": 100,
   "parallelism": 8
 }
