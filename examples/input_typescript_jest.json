@@ -1,0 +1,7 @@
+{
+  "repo": "https://github.com/your-org/typescript-project",
+  "test_command": "npm test",
+  "runs": 100,
+  "parallelism": 10,
+  "framework": "typescript-jest"
+}

@@ -4,10 +4,13 @@ A RunPod serverless function that detects flaky tests by running them multiple t
 
 **📚 New to this project? Start with the [Step-by-Step Tutorial](TUTORIAL.md)** — A comprehensive guide to building this system from scratch, following DigitalOcean's tutorial format with clear instructions, code examples, and troubleshooting tips.
 
+**🌍 Multi-Language Support:** See [MULTI_LANGUAGE.md](MULTI_LANGUAGE.md) for extending support to Go, TypeScript, and other test frameworks beyond Python.
+
 ## Features
 
 - **Parallel Test Execution**: Run tests multiple times concurrently to quickly identify flakiness
 - **Seed Randomization**: Each test run uses a unique random seed to expose timing-dependent bugs
+- **Multi-Language Support**: Python/pytest (built-in), Go, TypeScript/Jest, and more (see [MULTI_LANGUAGE.md](MULTI_LANGUAGE.md))
 - **Automatic Dependency Installation**: Installs requirements.txt automatically from cloned repositories
 - **CI/CD Integration**: Automatically detect flaky tests when CI/CD tests fail (GitHub Actions, GitLab CI, etc.)
 - **Multi-Channel Reporting**: Post results to PR comments, Slack, Discord, or CI/CD logs

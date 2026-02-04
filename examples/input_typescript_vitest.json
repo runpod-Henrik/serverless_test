@@ -1,0 +1,7 @@
+{
+  "repo": "https://github.com/your-org/vite-project",
+  "test_command": "vitest run",
+  "runs": 100,
+  "parallelism": 10,
+  "framework": "typescript-vitest"
+}

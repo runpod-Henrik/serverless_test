@@ -1,0 +1,7 @@
+{
+  "repo": "https://github.com/your-org/go-project",
+  "test_command": "go test -v ./...",
+  "runs": 100,
+  "parallelism": 10,
+  "framework": "go"
+}
