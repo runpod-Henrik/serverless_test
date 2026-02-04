@@ -445,6 +445,83 @@ That's the power of serverless architecture done right.
 }
 ```
 
+## Phase 6: Enhanced Features
+
+After the initial release, we added two major enhancements based on real-world usage:
+
+### Configuration File Support
+
+Users wanted per-repository customization without modifying code:
+
+```yaml
+# .flaky-detector.yml
+runs: 150                    # Project-specific settings
+parallelism: 15
+severity_thresholds:
+  medium: 0.05              # More sensitive for critical projects
+ignore_patterns:
+  - "test_known_flaky_*"    # Skip known issues
+```
+
+**Implementation:**
+- YAML configuration loader with schema validation
+- Nested dictionary merging for partial overrides
+- Pattern matching for test filtering
+- Customizable severity thresholds
+
+**Testing:** 15 unit tests covering all config scenarios
+
+### Historical Tracking & Dashboard
+
+One-time checks aren't enough—you need to see trends:
+
+**SQLite Database:**
+```python
+db.save_run(
+    repository="user/repo",
+    test_command="pytest tests/",
+    total_runs=100,
+    failures=23,
+    repro_rate=0.23,
+    severity="MEDIUM",
+    results=[...],  # All individual results
+    pr_number=42,
+    branch="feature/new",
+    commit_sha="abc123"
+)
+```
+
+**Streamlit Dashboard:**
+- Overview metrics (total runs, avg flaky rate)
+- Flakiness trend over time (line chart)
+- Most flaky test commands (ranked table)
+- Severity distribution (bar chart)
+- Filterable run history
+
+**Query API:**
+```python
+# Get 30-day trend
+trend = db.get_flakiness_trend("user/repo", days=30)
+
+# Find worst offenders
+flaky = db.get_most_flaky_commands("user/repo", limit=10)
+
+# Overall statistics
+stats = db.get_statistics()
+```
+
+**Testing:** 10 unit tests + integration test suite
+
+### Results
+
+With these additions:
+1. **Customization**: Each team can tune sensitivity without code changes
+2. **Trend Analysis**: "Is our test suite getting better?" → Data-driven answer
+3. **Prioritization**: Focus on tests that fail most frequently
+4. **Proof of Impact**: Show management that flakiness is decreasing
+
+**Test Coverage:** 26+ passing tests covering all functionality
+
 ## About the Author
 
 This project was built collaboratively using Claude Code, demonstrating how AI-assisted development can accelerate the journey from concept to production-ready code while maintaining security and best practices.

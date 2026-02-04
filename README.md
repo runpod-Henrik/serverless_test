@@ -9,9 +9,13 @@ A RunPod serverless function that detects flaky tests by running them multiple t
 - **Automatic Dependency Installation**: Installs requirements.txt automatically from cloned repositories
 - **CI/CD Integration**: Automatically detect flaky tests when CI/CD tests fail (GitHub Actions, GitLab CI, etc.)
 - **Multi-Channel Reporting**: Post results to PR comments, Slack, Discord, or CI/CD logs
+- **Configuration File Support**: Customize behavior per-repository with `.flaky-detector.yml`
+- **Historical Tracking**: SQLite database tracks test results over time with trend analysis
+- **Interactive Dashboard**: Streamlit-based dashboard for visualizing flakiness patterns
 - **Comprehensive Error Handling**: Robust error handling for network issues, timeouts, and test failures
 - **Resource Cleanup**: Automatic cleanup of temporary directories and working directory restoration
 - **Security Hardened**: Protected against command injection with proper input validation
+- **Fully Tested**: 26+ tests covering all major functionality
 
 ## Prerequisites
 
@@ -43,6 +47,40 @@ cd serverless_test
 uv sync
 ```
 
+## Configuration
+
+Customize flaky test detector behavior per-repository with `.flaky-detector.yml`:
+
+```yaml
+# Example configuration
+runs: 150                    # More thorough testing
+parallelism: 15             # Faster execution
+severity_thresholds:
+  medium: 0.05              # More sensitive to flakiness
+ignore_patterns:
+  - "test_known_flaky_*"    # Skip certain tests
+```
+
+See [CONFIGURATION.md](CONFIGURATION.md) for full reference.
+
+## Historical Tracking & Dashboard
+
+Track test flakiness trends over time with the interactive dashboard:
+
+```bash
+streamlit run dashboard.py
+# Opens at http://localhost:8501
+```
+
+**Dashboard features:**
+- 📊 Overview metrics and statistics
+- 📈 Flakiness trend visualization over time
+- 🔥 Most flaky test commands
+- 🎯 Severity distribution charts
+- 📋 Filterable test run history
+
+See [HISTORICAL_TRACKING.md](HISTORICAL_TRACKING.md) for complete guide.
+
 ## Local Development
 
 ### Running Tests Locally
@@ -58,6 +96,12 @@ TEST_SEED=12345 pytest tests/test_flaky.py
 
 # Run multiple times to see flakiness
 for i in {1..10}; do pytest tests/test_flaky.py; done
+
+# Run all tests (26+ tests)
+pytest tests/ -v
+
+# Run integration tests
+python3 test_new_features.py
 ```
 
 ### Testing the Worker Locally

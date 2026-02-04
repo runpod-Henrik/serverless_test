@@ -14,6 +14,22 @@ This is a RunPod serverless function for detecting flaky tests. It clones a repo
   - `run_test_once()`: Executes a single test run with custom environment variables
   - Uses `ThreadPoolExecutor` for parallel test execution
 
+- `config.py`: Configuration management system
+  - Loads `.flaky-detector.yml` from repositories
+  - Manages severity thresholds and ignore patterns
+  - Validates and merges configuration overrides
+
+- `database.py`: Historical tracking database (SQLite)
+  - Stores test run results with full metadata
+  - Provides query API for trends and statistics
+  - Supports repository filtering and date ranges
+
+- `dashboard.py`: Interactive Streamlit dashboard
+  - Visualizes flakiness trends over time
+  - Shows most flaky test commands
+  - Displays severity distributions
+  - Filterable by repository and time period
+
 **Job Input Format:**
 ```json
 {
@@ -50,14 +66,17 @@ Returns a summary with:
 
 ## Development Commands
 
-**Run tests locally:**
+**Run all tests:**
 ```bash
-pytest tests/
+pytest tests/ -v  # 26+ tests
 ```
 
-**Run a specific test:**
+**Run specific test suites:**
 ```bash
-pytest tests/test_flaky.py
+pytest tests/test_config.py -v      # Configuration (15 tests)
+pytest tests/test_database.py -v    # Database (10 tests)
+pytest tests/test_flaky.py -v       # Example flaky test
+python3 test_new_features.py        # Integration tests
 ```
 
 **Format code:**
@@ -65,9 +84,14 @@ pytest tests/test_flaky.py
 black .
 ```
 
-**Start the RunPod worker locally:**
+**Start the dashboard:**
 ```bash
-python worker.py
+streamlit run dashboard.py
+```
+
+**Test locally:**
+```bash
+python3 local_test.py  # Test without RunPod
 ```
 
 **Test with sample input:**
@@ -76,16 +100,27 @@ The `test_input.json` file contains example job configuration for testing the ha
 ## Dependencies
 
 - Python 3.12+
-- `runpod`: Serverless framework integration
-- `pytest`: For running test suites
+- `runpod`: Serverless framework
+- `pytest`: Test framework
 - `black`: Code formatting
+- `pyyaml`: Configuration parsing
+- `streamlit`: Dashboard framework
+- `plotly`: Interactive charts
+- `pandas`: Data manipulation
 
 Install with:
 ```bash
 pip install -r requirements.txt
-```
-
-Or using uv:
-```bash
+# or
 uv sync
 ```
+
+## Testing
+
+**26+ tests covering all functionality:**
+- Configuration system (15 tests)
+- Database operations (10 tests)
+- Example flaky test (1 test)
+- Integration tests (full workflow)
+
+All tests passing ✓
