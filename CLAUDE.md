@@ -33,11 +33,20 @@ Returns a summary with:
 - `results`: Array of individual run results with exit codes and output
 
 **Test Execution Flow:**
-1. Clones the repository into a temporary directory
-2. Changes working directory to the cloned repo
-3. Spawns parallel workers (via `ThreadPoolExecutor`)
-4. Each worker runs the test command with unique `TEST_SEED` and `ATTEMPT` environment variables
-5. Collects all results and calculates failure statistics
+1. Validates input parameters (repo URL, runs, parallelism, test command)
+2. Clones the repository into a temporary directory
+3. Installs dependencies from requirements.txt if present
+4. Changes working directory to the cloned repo
+5. Spawns parallel workers (via `ThreadPoolExecutor`)
+6. Each worker runs the test command with unique `TEST_SEED` and `ATTEMPT` environment variables
+7. Collects all results and calculates failure statistics
+8. Cleans up temporary directory and restores working directory
+
+**Input Validation:**
+- Repository URL must start with `https://` or `git@`
+- Runs must be between 1 and 1000
+- Parallelism must be between 1 and 50
+- Test command and repo URL are required
 
 ## Development Commands
 

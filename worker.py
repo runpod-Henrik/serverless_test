@@ -2,6 +2,7 @@ import os
 import subprocess
 import tempfile
 import shlex
+import shutil
 import random
 import runpod
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -29,6 +30,14 @@ def run_test_once(cmd_list, env_overrides, attempt):
             "stderr": "TIMEOUT",
             "passed": False,
         }
+    except Exception as e:
+        return {
+            "attempt": attempt,
+            "exit_code": None,
+            "stdout": "",
+            "stderr": f"ERROR: {str(e)}",
+            "passed": False,
+        }
 
 
 def handler(job):
@@ -46,22 +55,58 @@ def handler(job):
     test_command = inp["test_command"]
     runs = int(inp.get("runs", 10))
     parallelism = int(inp.get("parallelism", 4))
-    workdir = tempfile.mkdtemp()
-    results = []
+
+    # Validate input parameters
+    if not repo:
+        raise ValueError("Repository URL is required")
+    if not test_command:
+        raise ValueError("Test command is required")
+    if runs < 1 or runs > 1000:
+        raise ValueError("Runs must be between 1 and 1000")
+    if parallelism < 1 or parallelism > 50:
+        raise ValueError("Parallelism must be between 1 and 50")
 
     # Validate repo URL (basic check for https:// or git@)
     if not (repo.startswith("https://") or repo.startswith("git@")):
         raise ValueError(f"Invalid repository URL: {repo}")
 
-    # Clone repo - using list arguments to prevent command injection
-    subprocess.run(["git", "clone", repo, workdir], check=True, capture_output=True)
-
-    # Parse test command safely
-    test_command_list = shlex.split(test_command)
-
+    workdir = tempfile.mkdtemp()
+    results = []
     original_cwd = os.getcwd()
-    os.chdir(workdir)
+
     try:
+        # Clone repo - using list arguments to prevent command injection
+        try:
+            subprocess.run(
+                ["git", "clone", repo, workdir],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Failed to clone repository: {e.stderr}")
+        except subprocess.TimeoutExpired:
+            raise RuntimeError("Repository clone timed out after 5 minutes")
+
+        os.chdir(workdir)
+
+        # Install dependencies if requirements.txt exists
+        if os.path.exists("requirements.txt"):
+            try:
+                subprocess.run(
+                    ["pip", "install", "-q", "-r", "requirements.txt"],
+                    check=True,
+                    capture_output=True,
+                    timeout=300
+                )
+            except subprocess.CalledProcessError as e:
+                # Log but don't fail - some tests might not need all dependencies
+                print(f"Warning: Failed to install dependencies: {e.stderr}")
+
+        # Parse test command safely
+        test_command_list = shlex.split(test_command)
+
         with ThreadPoolExecutor(max_workers=parallelism) as executor:
             futures = []
             for i in range(runs):
@@ -73,10 +118,25 @@ def handler(job):
                     executor.submit(run_test_once, test_command_list, env_overrides, i)
                 )
             for future in as_completed(futures):
-                results.append(future.result())
+                try:
+                    results.append(future.result())
+                except Exception as e:
+                    # Handle exceptions from worker threads
+                    results.append({
+                        "attempt": len(results),
+                        "exit_code": None,
+                        "stdout": "",
+                        "stderr": f"WORKER ERROR: {str(e)}",
+                        "passed": False,
+                    })
     finally:
         # Restore original working directory
         os.chdir(original_cwd)
+        # Clean up temporary directory
+        try:
+            shutil.rmtree(workdir)
+        except Exception as e:
+            print(f"Warning: Failed to clean up temporary directory: {e}")
     failures = [r for r in results if not r["passed"]]
     summary = {
         "total_runs": runs,
