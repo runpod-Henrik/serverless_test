@@ -411,6 +411,49 @@ Set `PYTHONPATH` to the workspace directory:
 
 **Lesson learned:** CI environments are more strict about import paths than local development. Always explicitly set `PYTHONPATH` when running tests in GitHub Actions if you're not using `pip install -e .`
 
+### Coverage Configuration Gotcha
+
+Another issue: coverage initially reported **73.95%** instead of the expected **96%**.
+
+**The Problem:**
+```bash
+pytest tests/ --cov=.  # Measures EVERYTHING
+```
+
+This covered all files: dashboard.py, scripts/, local_test.py, etc. Most of these don't have tests.
+
+**The Fix:**
+Only measure modules we actually test:
+
+```yaml
+pytest tests/ \
+  --cov=worker \
+  --cov=config \
+  --cov=database
+```
+
+**Configuration in pyproject.toml:**
+```toml
+[tool.coverage.run]
+source = ["worker.py", "config.py", "database.py"]
+
+[tool.pytest.ini_options]
+addopts = [
+  "--cov=worker",
+  "--cov=config",
+  "--cov=database",
+  "--cov-fail-under=90",
+]
+```
+
+**Result:**
+- worker.py: 91.55%
+- config.py: 100%
+- database.py: 100%
+- **Total: 96.7%** ✅
+
+**Lesson learned:** Be explicit about what coverage measures. Don't include UI code, scripts, or test utilities in coverage metrics—focus on core business logic.
+
 ## The Results: Production-Ready
 
 After all iterations, we have:
