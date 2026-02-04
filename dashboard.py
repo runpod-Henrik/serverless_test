@@ -2,12 +2,14 @@
 Streamlit dashboard for viewing flaky test history.
 Run with: streamlit run dashboard.py
 """
-import streamlit as st
+from datetime import datetime, timedelta
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import streamlit as st
+
 from database import ResultsDatabase
-from datetime import datetime, timedelta
 
 # Page config
 st.set_page_config(

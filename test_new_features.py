@@ -2,10 +2,10 @@
 """
 Integration test for new features: configuration and historical tracking.
 """
+
 import os
 import sys
-import json
-import time
+
 from config import Config
 from database import ResultsDatabase
 
@@ -27,7 +27,7 @@ def test_configuration():
     print("\n2. Loading from .flaky-detector.yml...")
     if os.path.exists(".flaky-detector.yml"):
         config = Config.load_from_file(".flaky-detector.yml")
-        print(f"   ✓ Config loaded from file")
+        print("   ✓ Config loaded from file")
         print(f"   ✓ Runs: {config.get('runs')}")
         print(f"   ✓ Parallelism: {config.get('parallelism')}")
     else:
@@ -46,7 +46,7 @@ def test_configuration():
     for rate, expected in test_cases:
         severity, emoji = config.get_severity(rate)
         status = "✓" if severity == expected else "✗"
-        print(f"   {status} {rate*100:.0f}% → {emoji} {severity} (expected {expected})")
+        print(f"   {status} {rate * 100:.0f}% → {emoji} {severity} (expected {expected})")
 
     # Test 4: Ignore patterns
     print("\n4. Testing ignore patterns...")
@@ -84,8 +84,7 @@ def test_database():
         # Test 1: Save a run
         print("\n1. Saving test run to database...")
         results = [
-            {"attempt": i, "exit_code": 0 if i % 3 else 1, "passed": i % 3 != 0}
-            for i in range(10)
+            {"attempt": i, "exit_code": 0 if i % 3 else 1, "passed": i % 3 != 0} for i in range(10)
         ]
 
         run_id = db.save_run(
@@ -111,7 +110,7 @@ def test_database():
         print(f"   ✓ Repository: {run['repository']}")
         print(f"   ✓ Test command: {run['test_command']}")
         print(f"   ✓ Failures: {run['failures']}/{run['total_runs']}")
-        print(f"   ✓ Repro rate: {run['repro_rate']*100:.1f}%")
+        print(f"   ✓ Repro rate: {run['repro_rate'] * 100:.1f}%")
         print(f"   ✓ Severity: {run['severity']}")
         print(f"   ✓ PR: #{run['pr_number']}")
         print(f"   ✓ Results: {len(run['results'])} individual test results")
@@ -130,7 +129,7 @@ def test_database():
                 results=[],
                 duration_seconds=20.0 + i,
             )
-        print(f"   ✓ Added 5 more runs")
+        print("   ✓ Added 5 more runs")
 
         # Test 4: Query statistics
         print("\n4. Querying statistics...")
@@ -138,7 +137,7 @@ def test_database():
         print(f"   ✓ Total runs: {stats['total_runs']}")
         print(f"   ✓ Total tests executed: {stats['total_tests']}")
         print(f"   ✓ Total failures: {stats['total_failures']}")
-        print(f"   ✓ Avg repro rate: {stats['avg_repro_rate']*100:.1f}%")
+        print(f"   ✓ Avg repro rate: {stats['avg_repro_rate'] * 100:.1f}%")
         print(f"   ✓ Medium severity runs: {stats['medium_runs']}")
         print(f"   ✓ High severity runs: {stats['high_runs']}")
 
@@ -147,9 +146,7 @@ def test_database():
         recent = db.get_recent_runs(limit=3)
         print(f"   ✓ Retrieved {len(recent)} recent runs")
         for run in recent:
-            print(
-                f"      - {run['test_command']}: {run['failures']}/{run['total_runs']} failures"
-            )
+            print(f"      - {run['test_command']}: {run['failures']}/{run['total_runs']} failures")
 
         # Test 6: Get most flaky commands
         print("\n6. Finding most flaky test commands...")
@@ -157,7 +154,7 @@ def test_database():
         print(f"   ✓ Found {len(flaky)} test commands")
         for cmd in flaky:
             print(
-                f"      - {cmd['test_command']}: {cmd['avg_repro_rate']*100:.1f}% avg flaky rate"
+                f"      - {cmd['test_command']}: {cmd['avg_repro_rate'] * 100:.1f}% avg flaky rate"
             )
 
         print("\n✓ Historical tracking database working correctly!\n")

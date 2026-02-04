@@ -2,9 +2,10 @@
 """
 Script to run the flaky test detector on RunPod and save results.
 """
-import os
 import json
+import os
 import sys
+
 import runpod
 
 
@@ -31,7 +32,7 @@ def main():
     # Construct repository URL
     repo_url = f"https://github.com/{repository}"
 
-    print(f"🔍 Running flaky test detector...")
+    print("🔍 Running flaky test detector...")
     print(f"   Repository: {repo_url}")
     print(f"   Test command: {test_command}")
     print(f"   Runs: {runs}")

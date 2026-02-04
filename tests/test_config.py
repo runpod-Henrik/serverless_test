@@ -1,11 +1,11 @@
 """
 Tests for configuration management.
 """
-import pytest
-import tempfile
+
 import os
-from pathlib import Path
-from config import Config, DEFAULT_CONFIG
+import tempfile
+
+from config import Config
 
 
 class TestConfig:
@@ -35,9 +35,7 @@ class TestConfig:
 
     def test_load_from_yaml_file(self):
         """Test loading configuration from YAML file."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("runs: 150\n")
             f.write("parallelism: 15\n")
             f.write("severity_thresholds:\n")
@@ -129,9 +127,7 @@ class TestConfig:
 
     def test_invalid_yaml_returns_default(self):
         """Test invalid YAML file returns default config."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("invalid: yaml: content: here:\n")
             temp_path = f.name
 

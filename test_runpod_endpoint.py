@@ -2,9 +2,11 @@
 """
 Test your RunPod endpoint deployment.
 """
-import os
-import runpod
+
 import json
+import os
+
+import runpod
 
 
 def main():
@@ -26,7 +28,7 @@ def main():
 
     # Load test configuration
     try:
-        with open("test_input.json", "r") as f:
+        with open("test_input.json") as f:
             test_input = json.load(f)
     except FileNotFoundError:
         test_input = {
@@ -36,7 +38,7 @@ def main():
             "parallelism": 5,
         }
 
-    print(f"📋 Test configuration:")
+    print("📋 Test configuration:")
     print(f"   Repository: {test_input['repo']}")
     print(f"   Test command: {test_input['test_command']}")
     print(f"   Runs: {test_input['runs']}")

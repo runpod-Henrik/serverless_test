@@ -1,20 +1,22 @@
 import os
-import subprocess
-import tempfile
+import random
 import shlex
 import shutil
-import random
-import runpod
+import subprocess
+import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any
+
+import runpod
 
 
-def run_test_once(cmd_list, env_overrides, attempt):
+def run_test_once(
+    cmd_list: list[str], env_overrides: dict[str, str], attempt: int
+) -> dict[str, Any]:
     env = os.environ.copy()
     env.update(env_overrides)
     try:
-        result = subprocess.run(
-            cmd_list, capture_output=True, text=True, env=env, timeout=300
-        )
+        result = subprocess.run(cmd_list, capture_output=True, text=True, env=env, timeout=300)
         return {
             "attempt": attempt,
             "exit_code": result.returncode,
@@ -40,7 +42,7 @@ def run_test_once(cmd_list, env_overrides, attempt):
         }
 
 
-def handler(job):
+def handler(job: dict[str, Any]) -> dict[str, Any]:
     """
     Expected input:
     {
@@ -82,12 +84,12 @@ def handler(job):
                 check=True,
                 capture_output=True,
                 text=True,
-                timeout=300
+                timeout=300,
             )
         except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"Failed to clone repository: {e.stderr}")
-        except subprocess.TimeoutExpired:
-            raise RuntimeError("Repository clone timed out after 5 minutes")
+            raise RuntimeError(f"Failed to clone repository: {e.stderr}") from e
+        except subprocess.TimeoutExpired as e:
+            raise RuntimeError("Repository clone timed out after 5 minutes") from e
 
         os.chdir(workdir)
 
@@ -98,7 +100,7 @@ def handler(job):
                     ["pip", "install", "-q", "-r", "requirements.txt"],
                     check=True,
                     capture_output=True,
-                    timeout=300
+                    timeout=300,
                 )
             except subprocess.CalledProcessError as e:
                 # Log but don't fail - some tests might not need all dependencies
@@ -114,21 +116,21 @@ def handler(job):
                     "TEST_SEED": str(random.randint(1, 1_000_000)),
                     "ATTEMPT": str(i),
                 }
-                futures.append(
-                    executor.submit(run_test_once, test_command_list, env_overrides, i)
-                )
+                futures.append(executor.submit(run_test_once, test_command_list, env_overrides, i))
             for future in as_completed(futures):
                 try:
                     results.append(future.result())
                 except Exception as e:
                     # Handle exceptions from worker threads
-                    results.append({
-                        "attempt": len(results),
-                        "exit_code": None,
-                        "stdout": "",
-                        "stderr": f"WORKER ERROR: {str(e)}",
-                        "passed": False,
-                    })
+                    results.append(
+                        {
+                            "attempt": len(results),
+                            "exit_code": None,
+                            "stdout": "",
+                            "stderr": f"WORKER ERROR: {str(e)}",
+                            "passed": False,
+                        }
+                    )
     finally:
         # Restore original working directory
         os.chdir(original_cwd)

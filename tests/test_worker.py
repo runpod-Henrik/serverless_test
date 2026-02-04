@@ -1,38 +1,29 @@
 """
 Tests for worker.py - the main serverless handler.
 """
-import pytest
-import tempfile
-import os
-import json
-from unittest.mock import Mock, patch, MagicMock
+
 import sys
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Mock runpod before importing worker
-sys.modules['runpod'] = MagicMock()
-sys.modules['runpod.serverless'] = MagicMock()
+sys.modules["runpod"] = MagicMock()
+sys.modules["runpod.serverless"] = MagicMock()
 
 # Now we can import worker
-from worker import run_test_once, handler
+from worker import handler, run_test_once
 
 
 class TestRunTestOnce:
     """Test the run_test_once function."""
 
-    @patch('worker.subprocess.run')
+    @patch("worker.subprocess.run")
     def test_successful_test_run(self, mock_run):
         """Test a successful test execution."""
-        mock_run.return_value = Mock(
-            returncode=0,
-            stdout="1 passed in 0.01s",
-            stderr=""
-        )
+        mock_run.return_value = Mock(returncode=0, stdout="1 passed in 0.01s", stderr="")
 
-        result = run_test_once(
-            ["pytest", "test.py"],
-            {"TEST_SEED": "123", "ATTEMPT": "0"},
-            0
-        )
+        result = run_test_once(["pytest", "test.py"], {"TEST_SEED": "123", "ATTEMPT": "0"}, 0)
 
         assert result["attempt"] == 0
         assert result["exit_code"] == 0
@@ -40,55 +31,38 @@ class TestRunTestOnce:
         assert "1 passed" in result["stdout"]
         assert result["stderr"] == ""
 
-    @patch('worker.subprocess.run')
+    @patch("worker.subprocess.run")
     def test_failed_test_run(self, mock_run):
         """Test a failed test execution."""
-        mock_run.return_value = Mock(
-            returncode=1,
-            stdout="",
-            stderr="AssertionError: test failed"
-        )
+        mock_run.return_value = Mock(returncode=1, stdout="", stderr="AssertionError: test failed")
 
-        result = run_test_once(
-            ["pytest", "test.py"],
-            {"TEST_SEED": "456", "ATTEMPT": "1"},
-            1
-        )
+        result = run_test_once(["pytest", "test.py"], {"TEST_SEED": "456", "ATTEMPT": "1"}, 1)
 
         assert result["attempt"] == 1
         assert result["exit_code"] == 1
         assert result["passed"] is False
         assert "AssertionError" in result["stderr"]
 
-    @patch('worker.subprocess.run')
+    @patch("worker.subprocess.run")
     def test_timeout_handling(self, mock_run):
         """Test timeout is handled properly."""
         import subprocess
-        mock_run.side_effect = subprocess.TimeoutExpired(
-            cmd="pytest", timeout=300
-        )
 
-        result = run_test_once(
-            ["pytest", "test.py"],
-            {"TEST_SEED": "789"},
-            2
-        )
+        mock_run.side_effect = subprocess.TimeoutExpired(cmd="pytest", timeout=300)
+
+        result = run_test_once(["pytest", "test.py"], {"TEST_SEED": "789"}, 2)
 
         assert result["attempt"] == 2
         assert result["exit_code"] is None
         assert result["passed"] is False
         assert result["stderr"] == "TIMEOUT"
 
-    @patch('worker.subprocess.run')
+    @patch("worker.subprocess.run")
     def test_general_exception_handling(self, mock_run):
         """Test general exception is handled."""
         mock_run.side_effect = RuntimeError("Something went wrong")
 
-        result = run_test_once(
-            ["pytest", "test.py"],
-            {"TEST_SEED": "999"},
-            3
-        )
+        result = run_test_once(["pytest", "test.py"], {"TEST_SEED": "999"}, 3)
 
         assert result["attempt"] == 3
         assert result["exit_code"] is None
@@ -96,7 +70,7 @@ class TestRunTestOnce:
         assert "ERROR:" in result["stderr"]
         assert "Something went wrong" in result["stderr"]
 
-    @patch('worker.subprocess.run')
+    @patch("worker.subprocess.run")
     def test_environment_variables_passed(self, mock_run):
         """Test that environment variables are passed correctly."""
         mock_run.return_value = Mock(returncode=0, stdout="", stderr="")
@@ -114,13 +88,13 @@ class TestRunTestOnce:
 class TestHandler:
     """Test the main handler function."""
 
-    @patch('worker.shutil.rmtree')
-    @patch('worker.os.chdir')
-    @patch('worker.os.getcwd')
-    @patch('worker.os.path.exists')
-    @patch('worker.subprocess.run')
-    @patch('worker.tempfile.mkdtemp')
-    @patch('worker.ThreadPoolExecutor')
+    @patch("worker.shutil.rmtree")
+    @patch("worker.os.chdir")
+    @patch("worker.os.getcwd")
+    @patch("worker.os.path.exists")
+    @patch("worker.subprocess.run")
+    @patch("worker.tempfile.mkdtemp")
+    @patch("worker.ThreadPoolExecutor")
     def test_handler_basic_flow(
         self,
         mock_executor,
@@ -129,7 +103,7 @@ class TestHandler:
         mock_exists,
         mock_getcwd,
         mock_chdir,
-        mock_rmtree
+        mock_rmtree,
     ):
         """Test basic handler flow with valid input."""
         # Setup mocks
@@ -138,11 +112,7 @@ class TestHandler:
         mock_exists.return_value = False  # No requirements.txt
 
         # Mock git clone success
-        mock_subprocess.return_value = Mock(
-            returncode=0,
-            stdout="",
-            stderr=""
-        )
+        mock_subprocess.return_value = Mock(returncode=0, stdout="", stderr="")
 
         # Mock ThreadPoolExecutor
         mock_future = Mock()
@@ -151,7 +121,7 @@ class TestHandler:
             "exit_code": 0,
             "passed": True,
             "stdout": "ok",
-            "stderr": ""
+            "stderr": "",
         }
 
         mock_executor_instance = Mock()
@@ -161,14 +131,14 @@ class TestHandler:
         mock_executor.return_value = mock_executor_instance
 
         # Mock as_completed
-        with patch('worker.as_completed', return_value=[mock_future]):
+        with patch("worker.as_completed", return_value=[mock_future]):
             # Call handler
             job = {
                 "input": {
                     "repo": "https://github.com/test/repo",
                     "test_command": "pytest tests/",
                     "runs": 2,
-                    "parallelism": 1
+                    "parallelism": 1,
                 }
             }
 
@@ -188,22 +158,17 @@ class TestHandler:
         mock_rmtree.assert_called_once_with("/tmp/test123")
         mock_chdir.assert_called()  # Called to restore directory
 
-    @patch('worker.subprocess.run')
+    @patch("worker.subprocess.run")
     def test_handler_validates_repo_url(self, mock_subprocess):
         """Test that invalid repo URLs are rejected."""
         job = {
-            "input": {
-                "repo": "invalid-url",
-                "test_command": "pytest",
-                "runs": 10,
-                "parallelism": 2
-            }
+            "input": {"repo": "invalid-url", "test_command": "pytest", "runs": 10, "parallelism": 2}
         }
 
         with pytest.raises(ValueError, match="Invalid repository URL"):
             handler(job)
 
-    @patch('worker.subprocess.run')
+    @patch("worker.subprocess.run")
     def test_handler_validates_runs(self, mock_subprocess):
         """Test that runs are validated."""
         job = {
@@ -211,14 +176,14 @@ class TestHandler:
                 "repo": "https://github.com/test/repo",
                 "test_command": "pytest",
                 "runs": 5000,  # Too many
-                "parallelism": 2
+                "parallelism": 2,
             }
         }
 
         with pytest.raises(ValueError, match="Runs must be between"):
             handler(job)
 
-    @patch('worker.subprocess.run')
+    @patch("worker.subprocess.run")
     def test_handler_validates_parallelism(self, mock_subprocess):
         """Test that parallelism is validated."""
         job = {
@@ -226,29 +191,22 @@ class TestHandler:
                 "repo": "https://github.com/test/repo",
                 "test_command": "pytest",
                 "runs": 10,
-                "parallelism": 100  # Too many
+                "parallelism": 100,  # Too many
             }
         }
 
         with pytest.raises(ValueError, match="Parallelism must be between"):
             handler(job)
 
-    @patch('worker.subprocess.run')
+    @patch("worker.subprocess.run")
     def test_handler_requires_repo(self, mock_subprocess):
         """Test that repo is required."""
-        job = {
-            "input": {
-                "repo": "",
-                "test_command": "pytest",
-                "runs": 10,
-                "parallelism": 2
-            }
-        }
+        job = {"input": {"repo": "", "test_command": "pytest", "runs": 10, "parallelism": 2}}
 
         with pytest.raises(ValueError, match="Repository URL is required"):
             handler(job)
 
-    @patch('worker.subprocess.run')
+    @patch("worker.subprocess.run")
     def test_handler_requires_test_command(self, mock_subprocess):
         """Test that test_command is required."""
         job = {
@@ -256,25 +214,20 @@ class TestHandler:
                 "repo": "https://github.com/test/repo",
                 "test_command": "",
                 "runs": 10,
-                "parallelism": 2
+                "parallelism": 2,
             }
         }
 
         with pytest.raises(ValueError, match="Test command is required"):
             handler(job)
 
-    @patch('worker.shutil.rmtree')
-    @patch('worker.os.chdir')
-    @patch('worker.os.getcwd')
-    @patch('worker.subprocess.run')
-    @patch('worker.tempfile.mkdtemp')
+    @patch("worker.shutil.rmtree")
+    @patch("worker.os.chdir")
+    @patch("worker.os.getcwd")
+    @patch("worker.subprocess.run")
+    @patch("worker.tempfile.mkdtemp")
     def test_handler_git_clone_failure(
-        self,
-        mock_mkdtemp,
-        mock_subprocess,
-        mock_getcwd,
-        mock_chdir,
-        mock_rmtree
+        self, mock_mkdtemp, mock_subprocess, mock_getcwd, mock_chdir, mock_rmtree
     ):
         """Test handling of git clone failure."""
         import subprocess
@@ -284,9 +237,7 @@ class TestHandler:
 
         # Mock git clone failure
         mock_subprocess.side_effect = subprocess.CalledProcessError(
-            returncode=1,
-            cmd="git clone",
-            stderr="repository not found"
+            returncode=1, cmd="git clone", stderr="repository not found"
         )
 
         job = {
@@ -294,7 +245,7 @@ class TestHandler:
                 "repo": "https://github.com/test/nonexistent",
                 "test_command": "pytest",
                 "runs": 10,
-                "parallelism": 2
+                "parallelism": 2,
             }
         }
 
@@ -304,18 +255,13 @@ class TestHandler:
         # Verify cleanup still happens
         mock_rmtree.assert_called()
 
-    @patch('worker.shutil.rmtree')
-    @patch('worker.os.chdir')
-    @patch('worker.os.getcwd')
-    @patch('worker.subprocess.run')
-    @patch('worker.tempfile.mkdtemp')
+    @patch("worker.shutil.rmtree")
+    @patch("worker.os.chdir")
+    @patch("worker.os.getcwd")
+    @patch("worker.subprocess.run")
+    @patch("worker.tempfile.mkdtemp")
     def test_handler_git_clone_timeout(
-        self,
-        mock_mkdtemp,
-        mock_subprocess,
-        mock_getcwd,
-        mock_chdir,
-        mock_rmtree
+        self, mock_mkdtemp, mock_subprocess, mock_getcwd, mock_chdir, mock_rmtree
     ):
         """Test handling of git clone timeout."""
         import subprocess
@@ -324,30 +270,27 @@ class TestHandler:
         mock_getcwd.return_value = "/original/dir"
 
         # Mock git clone timeout
-        mock_subprocess.side_effect = subprocess.TimeoutExpired(
-            cmd="git clone",
-            timeout=300
-        )
+        mock_subprocess.side_effect = subprocess.TimeoutExpired(cmd="git clone", timeout=300)
 
         job = {
             "input": {
                 "repo": "https://github.com/test/huge-repo",
                 "test_command": "pytest",
                 "runs": 10,
-                "parallelism": 2
+                "parallelism": 2,
             }
         }
 
         with pytest.raises(RuntimeError, match="timed out"):
             handler(job)
 
-    @patch('worker.shutil.rmtree')
-    @patch('worker.os.chdir')
-    @patch('worker.os.getcwd')
-    @patch('worker.os.path.exists')
-    @patch('worker.subprocess.run')
-    @patch('worker.tempfile.mkdtemp')
-    @patch('worker.ThreadPoolExecutor')
+    @patch("worker.shutil.rmtree")
+    @patch("worker.os.chdir")
+    @patch("worker.os.getcwd")
+    @patch("worker.os.path.exists")
+    @patch("worker.subprocess.run")
+    @patch("worker.tempfile.mkdtemp")
+    @patch("worker.ThreadPoolExecutor")
     def test_handler_installs_dependencies(
         self,
         mock_executor,
@@ -356,7 +299,7 @@ class TestHandler:
         mock_exists,
         mock_getcwd,
         mock_chdir,
-        mock_rmtree
+        mock_rmtree,
     ):
         """Test that dependencies are installed if requirements.txt exists."""
         mock_mkdtemp.return_value = "/tmp/test999"
@@ -379,7 +322,7 @@ class TestHandler:
             "exit_code": 0,
             "passed": True,
             "stdout": "",
-            "stderr": ""
+            "stderr": "",
         }
 
         mock_executor_instance = Mock()
@@ -388,13 +331,13 @@ class TestHandler:
         mock_executor_instance.submit = Mock(return_value=mock_future)
         mock_executor.return_value = mock_executor_instance
 
-        with patch('worker.as_completed', return_value=[mock_future]):
+        with patch("worker.as_completed", return_value=[mock_future]):
             job = {
                 "input": {
                     "repo": "https://github.com/test/repo",
                     "test_command": "pytest",
                     "runs": 1,
-                    "parallelism": 1
+                    "parallelism": 1,
                 }
             }
 
@@ -405,21 +348,22 @@ class TestHandler:
 
     def test_handler_default_values(self):
         """Test that default values are used when not specified."""
-        with patch('worker.tempfile.mkdtemp'), \
-             patch('worker.os.getcwd'), \
-             patch('worker.os.chdir'), \
-             patch('worker.shutil.rmtree'), \
-             patch('worker.subprocess.run'), \
-             patch('worker.ThreadPoolExecutor') as mock_executor, \
-             patch('worker.os.path.exists', return_value=False):
-
+        with (
+            patch("worker.tempfile.mkdtemp"),
+            patch("worker.os.getcwd"),
+            patch("worker.os.chdir"),
+            patch("worker.shutil.rmtree"),
+            patch("worker.subprocess.run"),
+            patch("worker.ThreadPoolExecutor") as mock_executor,
+            patch("worker.os.path.exists", return_value=False),
+        ):
             mock_future = Mock()
             mock_future.result.return_value = {
                 "attempt": 0,
                 "exit_code": 0,
                 "passed": True,
                 "stdout": "",
-                "stderr": ""
+                "stderr": "",
             }
 
             mock_executor_instance = Mock()
@@ -428,11 +372,11 @@ class TestHandler:
             mock_executor_instance.submit = Mock(return_value=mock_future)
             mock_executor.return_value = mock_executor_instance
 
-            with patch('worker.as_completed', return_value=[mock_future]):
+            with patch("worker.as_completed", return_value=[mock_future]):
                 job = {
                     "input": {
                         "repo": "https://github.com/test/repo",
-                        "test_command": "pytest"
+                        "test_command": "pytest",
                         # runs and parallelism not specified
                     }
                 }

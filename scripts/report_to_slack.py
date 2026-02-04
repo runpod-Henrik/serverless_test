@@ -2,9 +2,10 @@
 """
 Send flaky test results to Slack via webhook.
 """
-import os
 import json
+import os
 import sys
+
 import requests
 
 
@@ -106,7 +107,7 @@ def main():
 
     # Load results
     try:
-        with open("flaky_test_results.json", "r") as f:
+        with open("flaky_test_results.json") as f:
             result = json.load(f)
     except FileNotFoundError:
         print("ERROR: Results file not found")

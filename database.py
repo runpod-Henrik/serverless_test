@@ -2,23 +2,21 @@
 Historical tracking database for flaky test results.
 Stores test run results in SQLite for trend analysis.
 """
+
 import sqlite3
-import json
-from datetime import datetime
-from typing import Dict, Any, List, Optional
-from pathlib import Path
+from typing import Any
 
 
 class ResultsDatabase:
     """Manage historical test results in SQLite."""
 
-    def __init__(self, db_path: str = "flaky_test_history.db"):
+    def __init__(self, db_path: str = "flaky_test_history.db") -> None:
         """Initialize database connection."""
         self.db_path = db_path
-        self.conn = None
+        self.conn: sqlite3.Connection
         self._init_db()
 
-    def _init_db(self):
+    def _init_db(self) -> None:
         """Create tables if they don't exist."""
         self.conn = sqlite3.connect(self.db_path)
         self.conn.row_factory = sqlite3.Row
@@ -85,11 +83,11 @@ class ResultsDatabase:
         failures: int,
         repro_rate: float,
         severity: str,
-        results: List[Dict[str, Any]],
-        duration_seconds: Optional[float] = None,
-        pr_number: Optional[int] = None,
-        branch: Optional[str] = None,
-        commit_sha: Optional[str] = None,
+        results: list[dict[str, Any]],
+        duration_seconds: float | None = None,
+        pr_number: int | None = None,
+        branch: str | None = None,
+        commit_sha: str | None = None,
     ) -> int:
         """
         Save a test run to the database.
@@ -124,6 +122,7 @@ class ResultsDatabase:
         )
 
         run_id = cursor.lastrowid
+        assert run_id is not None, "Failed to get last row ID"
 
         # Insert individual test results
         for result in results:
@@ -146,7 +145,7 @@ class ResultsDatabase:
         self.conn.commit()
         return run_id
 
-    def get_recent_runs(self, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_recent_runs(self, limit: int = 50) -> list[dict[str, Any]]:
         """Get recent test runs."""
         cursor = self.conn.cursor()
         cursor.execute(
@@ -160,9 +159,7 @@ class ResultsDatabase:
 
         return [dict(row) for row in cursor.fetchall()]
 
-    def get_runs_by_repository(
-        self, repository: str, limit: int = 100
-    ) -> List[Dict[str, Any]]:
+    def get_runs_by_repository(self, repository: str, limit: int = 100) -> list[dict[str, Any]]:
         """Get test runs for a specific repository."""
         cursor = self.conn.cursor()
         cursor.execute(
@@ -177,7 +174,7 @@ class ResultsDatabase:
 
         return [dict(row) for row in cursor.fetchall()]
 
-    def get_run_details(self, run_id: int) -> Optional[Dict[str, Any]]:
+    def get_run_details(self, run_id: int) -> dict[str, Any] | None:
         """Get detailed results for a specific run."""
         cursor = self.conn.cursor()
 
@@ -204,9 +201,7 @@ class ResultsDatabase:
 
         return run_dict
 
-    def get_flakiness_trend(
-        self, repository: str, days: int = 30
-    ) -> List[Dict[str, Any]]:
+    def get_flakiness_trend(self, repository: str, days: int = 30) -> list[dict[str, Any]]:
         """Get flakiness trend for a repository over time."""
         cursor = self.conn.cursor()
         cursor.execute(
@@ -227,9 +222,7 @@ class ResultsDatabase:
 
         return [dict(row) for row in cursor.fetchall()]
 
-    def get_most_flaky_commands(
-        self, repository: str, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    def get_most_flaky_commands(self, repository: str, limit: int = 10) -> list[dict[str, Any]]:
         """Get the most flaky test commands."""
         cursor = self.conn.cursor()
         cursor.execute(
@@ -252,7 +245,7 @@ class ResultsDatabase:
 
         return [dict(row) for row in cursor.fetchall()]
 
-    def get_statistics(self, repository: Optional[str] = None) -> Dict[str, Any]:
+    def get_statistics(self, repository: str | None = None) -> dict[str, Any]:
         """Get overall statistics."""
         cursor = self.conn.cursor()
 
@@ -279,13 +272,13 @@ class ResultsDatabase:
 
         return dict(cursor.fetchone())
 
-    def close(self):
+    def close(self) -> None:
         """Close database connection."""
         if self.conn:
             self.conn.close()
 
-    def __enter__(self):
+    def __enter__(self) -> "ResultsDatabase":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.close()

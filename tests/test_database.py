@@ -1,10 +1,12 @@
 """
 Tests for historical tracking database.
 """
-import pytest
-import tempfile
+
 import os
-from datetime import datetime, timedelta
+import tempfile
+
+import pytest
+
 from database import ResultsDatabase
 
 
@@ -27,9 +29,7 @@ class TestResultsDatabase:
     def test_database_initialization(self, temp_db):
         """Test database tables are created."""
         cursor = temp_db.conn.cursor()
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-        )
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
         tables = [row[0] for row in cursor.fetchall()]
         assert "test_runs" in tables
         assert "test_results" in tables
