@@ -298,6 +298,78 @@ def test_order_processing_is_eventually_consistent():
 
 The detector correctly classified it as **🟡 MEDIUM severity flaky behavior**.
 
+## Phase 7: Code Quality & CI/CD Hardening
+
+After the features were complete, I added comprehensive quality checks:
+
+### Linting with Ruff
+
+**The Problem:** Inconsistent code style, potential bugs hidden in plain sight.
+
+**Solution:** Modern fast linter (10-100x faster than flake8):
+```python
+# Catches common mistakes
+for pattern in ignore_patterns:
+    if fnmatch.fnmatch(test_name, pattern):
+        return False
+return True
+
+# Ruff suggests:
+return all(not fnmatch.fnmatch(test_name, pattern)
+          for pattern in ignore_patterns)
+```
+
+**Configured checks:**
+- PEP 8 style enforcement
+- Import sorting (isort)
+- Common bug patterns (bugbear)
+- Code simplification suggestions
+- Naming conventions
+
+### Type Checking with Mypy
+
+**Added strict type hints** to all functions:
+```python
+# Before
+def run_test_once(cmd_list, env_overrides, attempt):
+    ...
+
+# After
+def run_test_once(
+    cmd_list: list[str],
+    env_overrides: dict[str, str],
+    attempt: int
+) -> dict[str, Any]:
+    ...
+```
+
+**Benefits:**
+- Catch type errors before runtime
+- Better IDE autocomplete
+- Self-documenting code
+- Prevents common bugs
+
+### CI/CD Quality Gates
+
+**Two-stage pipeline:**
+
+**Stage 1: Lint & Type Check** (fails fast)
+```yaml
+- Run ruff linter
+- Check code formatting
+- Run mypy type checking
+```
+
+**Stage 2: Test Suite** (only if lint passes)
+```yaml
+- Run 40+ tests
+- Generate coverage reports
+- Enforce 90% minimum coverage
+- Post PR coverage comments
+```
+
+**Result:** Every PR now has automated quality checks.
+
 ## The Results: Production-Ready
 
 After all iterations, we have:
@@ -309,6 +381,9 @@ After all iterations, we have:
 ✅ **Cost-Effective** - Scales to zero, ~$0.024 per test run
 ✅ **Multi-Channel** - PR comments + Slack notifications
 ✅ **Well-Documented** - Complete setup guides
+✅ **Type-Safe** - Full type coverage with mypy
+✅ **High Quality** - 96% test coverage, linted, formatted
+✅ **CI/CD Hardened** - Automated quality gates on every PR
 
 ## Real-World Impact
 
@@ -334,6 +409,9 @@ Imagine this scenario:
 3. **Error handling** - Fail gracefully with helpful messages
 4. **Architecture matters** - Docker platform mismatches are easy to miss
 5. **Automation wins** - Manual processes don't scale
+6. **Type safety matters** - Type hints catch bugs before they reach production
+7. **Linting saves time** - Automated code quality checks prevent bikeshedding
+8. **Coverage is insurance** - 90%+ coverage gives confidence in refactoring
 
 ### Design Decisions That Worked
 
@@ -348,8 +426,8 @@ Imagine this scenario:
 1. **Add retry logic** - Some failures are network hiccups
 2. **Cache dependencies** - Speed up cold starts
 3. **Support private repos** - Currently only public repos work easily
-4. **Test result parsing** - Extract specific failed test names
-5. **Historical tracking** - Store results to track flakiness over time
+4. **Test result parsing** - Extract specific failed test names from output
+5. **Add benchmarking** - Track performance metrics over time
 
 ## Try It Yourself
 
@@ -404,12 +482,14 @@ That's the power of serverless architecture done right.
 
 ## Stats
 
-- **Lines of Code:** ~1,000 (including scripts and workflows)
+- **Lines of Code:** ~1,500 (including tests, scripts, and workflows)
+- **Test Suite:** 40+ tests with 96% code coverage
+- **Code Quality:** 100% type coverage, linted with ruff, formatted
 - **Docker Image Size:** 285 MB
 - **Cold Start Time:** ~15 seconds
 - **Test Execution:** 50 tests in ~2 minutes (5 parallel workers)
 - **Cost per Run:** ~$0.024 (100 tests, CPU instance)
-- **Development Time:** 1 day (from idea to production)
+- **Development Time:** 2 days (from idea to production with full quality checks)
 
 ---
 

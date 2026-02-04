@@ -16,6 +16,8 @@ A RunPod serverless function that detects flaky tests by running them multiple t
 - **Resource Cleanup**: Automatic cleanup of temporary directories and working directory restoration
 - **Security Hardened**: Protected against command injection with proper input validation
 - **Fully Tested**: 40+ tests with 96% code coverage across all main modules
+- **Code Quality**: Linting with ruff, type checking with mypy, automated formatting
+- **CI/CD Quality Gates**: Automated linting, type checking, and coverage enforcement
 
 ## Prerequisites
 
@@ -139,13 +141,37 @@ result = runpod.run_sync(
 print(result)
 ```
 
-### Code Formatting
+### Code Quality Checks
 
-Format code with Black:
+This project includes comprehensive quality checks. See [QUALITY_CHECKS.md](QUALITY_CHECKS.md) for full details.
+
+**Run all checks locally:**
 
 ```bash
-black .
+# Lint code
+ruff check .
+
+# Auto-fix linting issues
+ruff check . --fix
+
+# Format code
+ruff format .
+
+# Type check
+mypy worker.py config.py database.py
+
+# Run tests with coverage (90% minimum)
+pytest tests/ --cov=. --cov-fail-under=90
+
+# Run all checks at once
+ruff check . && mypy worker.py config.py database.py && pytest tests/ --cov-fail-under=90
 ```
+
+**Quality Standards:**
+- ✅ Ruff linting (PEP 8, imports, bugbear, simplify)
+- ✅ Mypy type checking (strict mode)
+- ✅ 90% minimum test coverage (current: 96%)
+- ✅ Automated in CI/CD (see CI/CD Integration below)
 
 ## Configuration
 
@@ -184,35 +210,89 @@ The serverless function accepts the following input parameters:
 
 ## CI/CD Integration
 
-The flaky test detector can automatically run when your CI/CD tests fail, helping you distinguish between real bugs and flaky tests.
+The flaky test detector includes **two automated workflows**:
 
-### Quick Start (GitHub Actions)
+### 1. Main CI Pipeline (Runs on Every Push/PR)
 
-1. **Add secrets** to your repository:
-   - `RUNPOD_API_KEY` - Your RunPod API key
-   - `RUNPOD_ENDPOINT_ID` - Your deployed endpoint ID
-   - `SLACK_WEBHOOK_URL` - (Optional) For Slack notifications
+Ensures code quality with automated checks:
 
-2. **Copy the workflow file**:
-   ```bash
-   # The workflow is already in .github/workflows/flaky-test-detector.yml
-   # Update line 4 to match your CI workflow name
+**Stage 1: Lint and Type Check**
+- ✅ Ruff linting (code style, imports, common bugs)
+- ✅ Code formatting check
+- ✅ Mypy type checking (strict mode)
+
+**Stage 2: Test Suite** (runs after lint passes)
+- ✅ Full test suite (40+ tests)
+- ✅ Coverage reporting (90% minimum required)
+- ✅ Coverage reports uploaded as artifacts
+- ✅ PR comments with coverage status
+
+**Workflow:** `.github/workflows/ci.yml`
+
+### 2. Flaky Test Detector (Runs on CI Test Failures)
+
+Automatically detects flaky tests when CI fails:
+
+**Setup Steps:**
+
+1. **Add GitHub Secrets**
+
+   Go to: `Settings → Secrets and variables → Actions → New repository secret`
+
+   Add these secrets:
+   ```
+   RUNPOD_API_KEY = <your RunPod API key>
+   RUNPOD_ENDPOINT_ID = <your endpoint ID>
+   SLACK_WEBHOOK_URL = <optional, for Slack notifications>
    ```
 
-3. **Test it**:
-   - Create a PR with a failing test
-   - Wait for CI to fail
-   - Flaky detector automatically runs and comments on the PR
+   Get your RunPod credentials from:
+   - API Key: https://www.runpod.io/console/user/settings
+   - Endpoint ID: Your RunPod serverless endpoint
 
-### Features
+2. **Using GitHub CLI** (alternative):
+   ```bash
+   gh secret set RUNPOD_API_KEY --body "your-api-key"
+   gh secret set RUNPOD_ENDPOINT_ID --body "your-endpoint-id"
+   gh secret set SLACK_WEBHOOK_URL --body "your-slack-webhook"  # optional
+   ```
 
-- ✅ Automatically triggers on test failures
-- ✅ Posts detailed results as PR comments with severity indicators
-- ✅ Sends Slack/Discord notifications
-- ✅ Uploads detailed results as artifacts
-- ✅ Distinguishes between flaky tests and real bugs
+3. **Verify Workflow Configuration**
 
-**📖 Full CI/CD Integration Guide**: See [docs/CICD_INTEGRATION.md](docs/CICD_INTEGRATION.md) for detailed setup instructions, configuration options, and troubleshooting.
+   Edit `.github/workflows/flaky-test-detector.yml` line 5:
+   ```yaml
+   workflows: ["CI"]  # Match your CI workflow name
+   ```
+
+4. **Test the Integration**
+
+   Create a test branch with a failing test:
+   ```bash
+   git checkout -b test-flaky-detection
+   # Make a test fail temporarily
+   git commit -am "Test flaky detector"
+   git push -u origin test-flaky-detection
+   ```
+
+   Create a PR → CI fails → Flaky detector runs automatically → Check PR comments
+
+**What Happens Automatically:**
+1. CI tests fail
+2. Flaky detector workflow triggers
+3. Runs failed test 100x in parallel on RunPod
+4. Analyzes failure pattern
+5. Posts PR comment with severity:
+   - 🔴 CRITICAL (>90%) - Real bug, not flaky
+   - 🟠 HIGH (50-90%) - Very unstable, fix before merge
+   - 🟡 MEDIUM (10-50%) - Flaky test, should fix
+   - 🟢 LOW (1-10%) - Occasional flakiness
+   - ✅ NONE (0%) - One-time issue, safe to merge
+6. Sends Slack notification (if configured)
+7. Uploads detailed results as artifacts
+
+**Workflow:** `.github/workflows/flaky-test-detector.yml`
+
+**Cost:** ~$0.024 per detection run (100 tests, 2 minutes)
 
 ## Deployment to RunPod
 
