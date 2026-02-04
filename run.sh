@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
-echo "Starting bug reproducer job"
-python worker.py
+echo "Starting flaky test detector worker"
+python3 worker.py
