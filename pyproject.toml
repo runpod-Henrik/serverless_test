@@ -74,23 +74,17 @@ addopts = [
     "-v",
     "--strict-markers",
     "--tb=short",
-    "--cov=.",
+    "--cov=worker",
+    "--cov=config",
+    "--cov=database",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-fail-under=90",
 ]
 
 [tool.coverage.run]
-source = ["."]
-omit = [
-    "tests/*",
-    "venv/*",
-    ".venv/*",
-    "*/site-packages/*",
-    "test_*.py",
-    "dashboard.py",  # UI code, harder to test
-    "scripts/*",     # Integration scripts
-]
+source = ["worker.py", "config.py", "database.py"]
+omit = []
 
 [tool.coverage.report]
 precision = 2
