@@ -880,7 +880,298 @@ Through building this system, you've learned:
 
 Now that you have a working flaky test detector, consider these enhancements:
 
-**Add configuration file support:**
+### Enhancement 1: AI-Powered Root Cause Analysis
+
+The most impactful enhancement is adding AI analysis to automatically diagnose why tests are flaky. This uses large language models (LLMs) to analyze error patterns and suggest fixes.
+
+**Why this matters:**
+- Knowing a test is flaky is just the first step
+- Developers need to know *why* it's flaky to fix it
+- AI can identify patterns humans miss (timing issues, race conditions, resource leaks)
+- Reduces time from detection to resolution by 10x
+
+**Implementation approach:**
+
+**Step 1: Collect rich failure data**
+
+Enhance `run_test_once()` to capture more context:
+
+```python
+def run_test_once(cmd_list, env_overrides, attempt):
+    """Enhanced version with more diagnostic data."""
+    env = os.environ.copy()
+    env.update(env_overrides)
+
+    start_time = time.time()
+    try:
+        result = subprocess.run(
+            cmd_list,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=300
+        )
+        duration = time.time() - start_time
+
+        return {
+            "attempt": attempt,
+            "exit_code": result.returncode,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "passed": result.returncode == 0,
+            "duration": duration,
+            "seed": env_overrides.get("TEST_SEED"),
+            "timestamp": datetime.now().isoformat(),
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            "attempt": attempt,
+            "exit_code": None,
+            "stdout": "",
+            "stderr": "TIMEOUT",
+            "passed": False,
+            "duration": 300.0,
+            "seed": env_overrides.get("TEST_SEED"),
+        }
+```
+
+**Step 2: Add AI analysis function**
+
+Use Claude (Anthropic API) or OpenAI to analyze failures:
+
+```python
+import anthropic
+import os
+
+def analyze_flaky_test_with_ai(results):
+    """
+    Use Claude to analyze test failures and suggest root causes.
+
+    Args:
+        results: List of test run results with failures
+
+    Returns:
+        Dict with analysis and recommendations
+    """
+    client = anthropic.Anthropic(
+        api_key=os.environ.get("ANTHROPIC_API_KEY")
+    )
+
+    # Extract failure patterns
+    failures = [r for r in results if not r["passed"]]
+    failure_rate = len(failures) / len(results)
+
+    # Get unique error messages
+    error_patterns = {}
+    for failure in failures:
+        error = failure.get("stderr", "") or failure.get("stdout", "")
+        # Extract just the assertion or error line
+        error_line = error.split("\n")[-3] if "\n" in error else error
+        error_patterns[error_line] = error_patterns.get(error_line, 0) + 1
+
+    # Analyze timing patterns
+    timing_info = {
+        "avg_pass_duration": sum(r["duration"] for r in results if r["passed"]) / max(len([r for r in results if r["passed"]]), 1),
+        "avg_fail_duration": sum(r["duration"] for r in failures) / max(len(failures), 1),
+        "timeouts": sum(1 for r in failures if r.get("stderr") == "TIMEOUT"),
+    }
+
+    # Prepare analysis prompt
+    prompt = f"""Analyze this flaky test and identify the root cause:
+
+Test Statistics:
+- Total runs: {len(results)}
+- Failures: {len(failures)} ({failure_rate * 100:.1f}%)
+- Failure pattern: {"consistent" if failure_rate > 0.8 else "intermittent"}
+
+Error Patterns:
+{chr(10).join(f'- "{error}" (occurred {count}x)' for error, count in sorted(error_patterns.items(), key=lambda x: -x[1])[:5])}
+
+Timing Analysis:
+- Average passing test duration: {timing_info['avg_pass_duration']:.2f}s
+- Average failing test duration: {timing_info['avg_fail_duration']:.2f}s
+- Timeouts: {timing_info['timeouts']}
+
+Sample Failure Output:
+```
+{failures[0].get('stderr', failures[0].get('stdout', ''))[:1000]}
+```
+
+Based on this data, identify:
+1. **Root Cause Category**: Race condition, timing issue, resource leak, external dependency, etc.
+2. **Specific Issue**: What exactly is causing the flakiness?
+3. **Confidence Level**: High/Medium/Low based on evidence
+4. **Fix Recommendations**: Concrete steps to resolve (with code examples if applicable)
+5. **Prevention**: How to prevent similar issues in the future
+
+Be specific and actionable."""
+
+    message = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=2000,
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    return {
+        "analysis": message.content[0].text,
+        "model": "claude-sonnet-4-20250514",
+        "failure_rate": failure_rate,
+        "error_patterns": error_patterns,
+        "timing_info": timing_info,
+    }
+```
+
+**Step 3: Integrate into handler**
+
+Modify your `handler()` function to call AI analysis when flakiness is detected:
+
+```python
+def handler(job):
+    # ... existing code to run tests ...
+
+    failures = [r for r in results if not r["passed"]]
+    repro_rate = len(failures) / runs
+
+    summary = {
+        "total_runs": runs,
+        "parallelism": parallelism,
+        "failures": len(failures),
+        "repro_rate": round(repro_rate, 3),
+        "results": sorted(results, key=lambda r: r["attempt"]),
+    }
+
+    # Add AI analysis if flaky behavior detected
+    if 0.05 < repro_rate < 0.95:  # Flaky range (not 0% or 100%)
+        try:
+            ai_analysis = analyze_flaky_test_with_ai(results)
+            summary["ai_analysis"] = ai_analysis
+        except Exception as e:
+            print(f"AI analysis failed: {e}")
+            summary["ai_analysis"] = None
+
+    return summary
+```
+
+**Step 4: Display analysis in PR comments**
+
+Update your GitHub Actions workflow to include AI insights:
+
+```yaml
+- name: Post results with AI analysis to PR
+  uses: actions/github-script@v7
+  with:
+    script: |
+      const fs = require('fs');
+      const result = JSON.parse(fs.readFileSync('flaky_results.json', 'utf8'));
+
+      let body = `## ${severity} Flaky Test Detection Results
+
+      ### Summary
+      - **Total runs:** ${result.total_runs}
+      - **Failures:** ${result.failures}
+      - **Reproduction rate:** ${(result.repro_rate * 100).toFixed(1)}%
+      `;
+
+      // Add AI analysis if available
+      if (result.ai_analysis) {
+        body += `\n\n### 🤖 AI Root Cause Analysis\n\n`;
+        body += result.ai_analysis.analysis;
+        body += `\n\n*Powered by Claude Sonnet 4*`;
+      }
+
+      await github.rest.issues.createComment({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        issue_number: context.issue.number,
+        body: body
+      });
+```
+
+**Example AI Analysis Output:**
+
+```markdown
+## 🤖 AI Root Cause Analysis
+
+**Root Cause Category:** Race Condition with Database Transaction
+
+**Specific Issue:** The test is failing due to a race condition in order processing.
+The test asserts that an order is marked as "processed" within 0.18 seconds, but
+the background worker that processes orders has variable timing (0.0-0.3s). This
+is classic asynchronous timing flakiness.
+
+**Confidence Level:** High (based on timing correlation and error messages)
+
+**Fix Recommendations:**
+
+1. **Use polling instead of fixed timeout:**
+   ```python
+   def wait_for_order_processed(order_id, timeout=5.0):
+       start = time.time()
+       while time.time() - start < timeout:
+           if order.status == "processed":
+               return True
+           time.sleep(0.1)
+       return False
+
+   assert wait_for_order_processed(order.id), "Order not processed in time"
+   ```
+
+2. **Use test-specific synchronous processing:**
+   ```python
+   @pytest.fixture
+   def sync_processing():
+       # Disable async worker in tests
+       settings.ASYNC_PROCESSING = False
+       yield
+       settings.ASYNC_PROCESSING = True
+   ```
+
+3. **Increase threshold with better assertion:**
+   ```python
+   # Instead of fixed 0.18s, use reasonable timeout
+   assert processing_time < 5.0, "Order processing took too long"
+   ```
+
+**Prevention:**
+- Add linting rule to detect `time.sleep()` in assertions
+- Use pytest-timeout to fail fast instead of random timing
+- Mock external dependencies that introduce timing variability
+- Add explicit synchronization points in async code paths
+```
+
+**Configuration:**
+
+Add your Anthropic API key to GitHub secrets:
+
+```bash
+gh secret set ANTHROPIC_API_KEY --body "sk-ant-..."
+```
+
+Update `requirements.txt`:
+
+```txt
+anthropic==0.40.0  # Claude API
+```
+
+**Cost Considerations:**
+
+- Claude Sonnet 4: ~$3 per million input tokens, ~$15 per million output tokens
+- Typical analysis: ~1000 input tokens + 500 output tokens
+- Cost per analysis: ~$0.01
+- With 100 PR failures/month: ~$1/month
+
+**Benefits:**
+
+✅ **10x faster debugging** - Immediate root cause instead of manual investigation
+✅ **Learning tool** - Junior developers learn from AI explanations
+✅ **Pattern recognition** - AI spots patterns across multiple failures
+✅ **Actionable fixes** - Concrete code suggestions, not generic advice
+✅ **Cost effective** - $1/month vs hours of developer time
+
+### Enhancement 2: Configuration File Support
+
 Create `.flaky-detector.yml` in repositories to customize behavior per-project:
 
 ```yaml
@@ -888,29 +1179,115 @@ runs: 150
 parallelism: 15
 severity_thresholds:
   medium: 0.05
+ai_analysis:
+  enabled: true
+  model: "claude-sonnet-4-20250514"
+  confidence_threshold: "medium"
 ```
 
-**Add historical tracking:**
-Store results in a SQLite database to track flakiness trends over time.
+### Enhancement 3: Historical Tracking
 
-**Add Slack notifications:**
-Send alerts to Slack when flaky tests are detected:
+Store results in a SQLite database to track flakiness trends over time:
+
+```python
+import sqlite3
+from datetime import datetime
+
+def save_to_database(result, repository, test_command):
+    """Save test results for trend analysis."""
+    conn = sqlite3.connect('flaky_history.db')
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO test_runs
+        (timestamp, repository, test_command, total_runs,
+         failures, repro_rate, ai_root_cause)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        datetime.now().isoformat(),
+        repository,
+        test_command,
+        result['total_runs'],
+        result['failures'],
+        result['repro_rate'],
+        result.get('ai_analysis', {}).get('analysis', '')
+    ))
+
+    conn.commit()
+    conn.close()
+```
+
+### Enhancement 4: Slack Notifications with AI Summary
+
+Send alerts to Slack with AI-generated summaries:
 
 ```python
 import requests
 
-webhook_url = os.environ.get('SLACK_WEBHOOK_URL')
-if webhook_url:
+def send_slack_notification(result, repo, pr_number):
+    """Send Slack notification with AI analysis summary."""
+    webhook_url = os.environ.get('SLACK_WEBHOOK_URL')
+    if not webhook_url:
+        return
+
+    ai_summary = ""
+    if result.get('ai_analysis'):
+        # Extract just the root cause for Slack
+        analysis = result['ai_analysis']['analysis']
+        lines = analysis.split('\n')
+        root_cause = [l for l in lines if 'Root Cause' in l or 'Specific Issue' in l]
+        ai_summary = '\n'.join(root_cause[:2]) if root_cause else ""
+
     requests.post(webhook_url, json={
-        "text": f"🟡 Flaky test detected: {rate * 100:.1f}% failure rate"
+        "text": f"🟡 Flaky test detected in {repo} (PR #{pr_number})",
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*Flaky Test Detected*\n{result['repro_rate'] * 100:.1f}% failure rate"
+                }
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*🤖 AI Analysis*\n{ai_summary}"
+                }
+            }
+        ]
     })
 ```
 
-**Support private repositories:**
-Add SSH key handling or token-based authentication for private repos.
+### Enhancement 5: Test Output Parsing
 
-**Parse test output:**
-Extract specific test names from pytest output to identify exactly which tests are flaky.
+Extract specific test names from pytest output:
+
+```python
+import re
+
+def parse_pytest_output(stdout):
+    """Extract individual test names and their results."""
+    test_pattern = r'(tests/\S+::\S+)\s+(PASSED|FAILED)'
+    matches = re.findall(test_pattern, stdout)
+    return [{"test": name, "result": result} for name, result in matches]
+```
+
+### Enhancement 6: Private Repository Support
+
+Add SSH key or token authentication for private repos:
+
+```python
+def clone_private_repo(repo_url, token=None):
+    """Clone private repository with authentication."""
+    if token:
+        # Use token for HTTPS
+        auth_url = repo_url.replace('https://', f'https://{token}@')
+        subprocess.run(['git', 'clone', auth_url, workdir], check=True)
+    else:
+        # Use SSH (requires SSH keys configured in container)
+        subprocess.run(['git', 'clone', repo_url, workdir], check=True)
+```
 
 ### Additional Resources
 
@@ -920,8 +1297,3 @@ Extract specific test names from pytest output to identify exactly which tests a
 - [Docker Documentation](https://docs.docker.com/)
 - [Python subprocess Module](https://docs.python.org/3/library/subprocess.html)
 
-The complete source code for this tutorial is available on GitHub at [runpod-Henrik/serverless_test](https://github.com/runpod-Henrik/serverless_test).
-
----
-
-**About the Author:** This tutorial demonstrates building production-ready serverless applications using modern Python development practices including type checking, linting, comprehensive testing, and automated CI/CD integration.
