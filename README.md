@@ -2,6 +2,8 @@
 
 A RunPod serverless function that detects flaky tests by running them multiple times in parallel with different random seeds. This tool helps identify non-deterministic test failures that can be difficult to reproduce in normal CI/CD environments.
 
+**📚 New to this project? Start with the [Step-by-Step Tutorial](TUTORIAL.md)** — A comprehensive guide to building this system from scratch, following DigitalOcean's tutorial format with clear instructions, code examples, and troubleshooting tips.
+
 ## Features
 
 - **Parallel Test Execution**: Run tests multiple times concurrently to quickly identify flakiness

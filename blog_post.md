@@ -521,6 +521,8 @@ The entire project is open source and production-ready:
 
 **Repository:** [github.com/runpod-Henrik/serverless_test](https://github.com/runpod-Henrik/serverless_test)
 
+**📚 Want to build this yourself?** Follow the [comprehensive tutorial](https://github.com/runpod-Henrik/serverless_test/blob/main/TUTORIAL.md) with step-by-step instructions, code examples, and troubleshooting tips.
+
 **Quick start:**
 ```bash
 # Clone the repo
