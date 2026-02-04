@@ -74,13 +74,13 @@ class Config:
         """
         thresholds = self.config["severity_thresholds"]
 
-        if repro_rate > thresholds["critical"]:
+        if repro_rate >= thresholds["critical"]:
             return "CRITICAL", "🔴"
-        elif repro_rate > thresholds["high"]:
+        elif repro_rate >= thresholds["high"]:
             return "HIGH", "🟠"
-        elif repro_rate > thresholds["medium"]:
+        elif repro_rate >= thresholds["medium"]:
             return "MEDIUM", "🟡"
-        elif repro_rate > thresholds["low"]:
+        elif repro_rate >= thresholds["low"]:
             return "LOW", "🟢"
         else:
             return "NONE", "✅"
