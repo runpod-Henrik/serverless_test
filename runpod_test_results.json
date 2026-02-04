@@ -1,0 +1,358 @@
+{
+  "failures": 18,
+  "parallelism": 5,
+  "repro_rate": 0.36,
+  "results": [
+    {
+      "attempt": 0,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.03s ===============================\n"
+    },
+    {
+      "attempt": 1,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.07s ===============================\n"
+    },
+    {
+      "attempt": 2,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.03s ===============================\n"
+    },
+    {
+      "attempt": 3,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.07s ===============================\n"
+    },
+    {
+      "attempt": 4,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.261s)\nE       assert 0.26079517406468183 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.32s ===============================\n"
+    },
+    {
+      "attempt": 5,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.08s ===============================\n"
+    },
+    {
+      "attempt": 6,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.05s ===============================\n"
+    },
+    {
+      "attempt": 7,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.10s ===============================\n"
+    },
+    {
+      "attempt": 8,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.06s ===============================\n"
+    },
+    {
+      "attempt": 9,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.281s)\nE       assert 0.28052889763874134 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.33s ===============================\n"
+    },
+    {
+      "attempt": 10,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.10s ===============================\n"
+    },
+    {
+      "attempt": 11,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.04s ===============================\n"
+    },
+    {
+      "attempt": 12,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.272s)\nE       assert 0.2720295478212582 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.34s ===============================\n"
+    },
+    {
+      "attempt": 13,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.14s ===============================\n"
+    },
+    {
+      "attempt": 14,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.03s ===============================\n"
+    },
+    {
+      "attempt": 15,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.17s ===============================\n"
+    },
+    {
+      "attempt": 16,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.19s ===============================\n"
+    },
+    {
+      "attempt": 17,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.09s ===============================\n"
+    },
+    {
+      "attempt": 18,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.252s)\nE       assert 0.25184332283142297 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.30s ===============================\n"
+    },
+    {
+      "attempt": 19,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.18s ===============================\n"
+    },
+    {
+      "attempt": 20,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.08s ===============================\n"
+    },
+    {
+      "attempt": 21,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.190s)\nE       assert 0.19027836243037696 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.23s ===============================\n"
+    },
+    {
+      "attempt": 22,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.210s)\nE       assert 0.20972168881163777 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.27s ===============================\n"
+    },
+    {
+      "attempt": 23,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.13s ===============================\n"
+    },
+    {
+      "attempt": 24,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.11s ===============================\n"
+    },
+    {
+      "attempt": 25,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.187s)\nE       assert 0.18663492168590815 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.23s ===============================\n"
+    },
+    {
+      "attempt": 26,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.269s)\nE       assert 0.2686894573913869 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.35s ===============================\n"
+    },
+    {
+      "attempt": 27,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.07s ===============================\n"
+    },
+    {
+      "attempt": 28,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.11s ===============================\n"
+    },
+    {
+      "attempt": 29,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.03s ===============================\n"
+    },
+    {
+      "attempt": 30,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.09s ===============================\n"
+    },
+    {
+      "attempt": 31,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.246s)\nE       assert 0.24598397824427637 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.29s ===============================\n"
+    },
+    {
+      "attempt": 32,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.240s)\nE       assert 0.24006543394539942 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.29s ===============================\n"
+    },
+    {
+      "attempt": 33,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.03s ===============================\n"
+    },
+    {
+      "attempt": 34,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.263s)\nE       assert 0.26293722581313594 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.30s ===============================\n"
+    },
+    {
+      "attempt": 35,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.245s)\nE       assert 0.24522481554790942 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.29s ===============================\n"
+    },
+    {
+      "attempt": 36,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.270s)\nE       assert 0.26976538408605516 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.33s ===============================\n"
+    },
+    {
+      "attempt": 37,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.06s ===============================\n"
+    },
+    {
+      "attempt": 38,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.04s ===============================\n"
+    },
+    {
+      "attempt": 39,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.08s ===============================\n"
+    },
+    {
+      "attempt": 40,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.200s)\nE       assert 0.20014364076285363 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.26s ===============================\n"
+    },
+    {
+      "attempt": 41,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.277s)\nE       assert 0.27688734821158634 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.31s ===============================\n"
+    },
+    {
+      "attempt": 42,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.191s)\nE       assert 0.191354767702578 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.25s ===============================\n"
+    },
+    {
+      "attempt": 43,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.12s ===============================\n"
+    },
+    {
+      "attempt": 44,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.14s ===============================\n"
+    },
+    {
+      "attempt": 45,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.04s ===============================\n"
+    },
+    {
+      "attempt": 46,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.14s ===============================\n"
+    },
+    {
+      "attempt": 47,
+      "exit_code": 0,
+      "passed": true,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py .                                                    [100%]\n\n============================== 1 passed in 0.16s ===============================\n"
+    },
+    {
+      "attempt": 48,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.297s)\nE       assert 0.2971230907439038 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.35s ===============================\n"
+    },
+    {
+      "attempt": 49,
+      "exit_code": 1,
+      "passed": false,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0\nrootdir: /tmp/tmpfrimg7r8\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests/test_flaky.py F                                                    [100%]\n\n=================================== FAILURES ===================================\n________________ test_order_processing_is_eventually_consistent ________________\n\n    def test_order_processing_is_eventually_consistent():\n        \"\"\"\n        This test simulates a classic real-world flake:\n        - timing sensitivity\n        - randomness\n        - implicit assumptions about consistency\n        \"\"\"\n        # Seed can be controlled externally (RunPod sets this)\n        seed = os.getenv(\"TEST_SEED\")\n        if seed:\n            random.seed(int(seed))\n        # Simulate async / eventual behavior\n        processing_time = random.uniform(0.0, 0.3)\n        time.sleep(processing_time)\n        # Simulate race condition / timing window\n        # 15\u201325% failure rate depending on timing + seed\n        success_threshold = 0.18\n>       assert (\n            processing_time < success_threshold\n        ), f\"Order not processed in time (took {processing_time:.3f}s)\"\nE       AssertionError: Order not processed in time (took 0.280s)\nE       assert 0.2804961284645905 < 0.18\n\ntests/test_flaky.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_flaky.py::test_order_processing_is_eventually_consistent - ...\n============================== 1 failed in 0.30s ===============================\n"
+    }
+  ],
+  "total_runs": 50
+}

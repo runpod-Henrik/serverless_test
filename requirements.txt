@@ -1,2 +1,6 @@
 runpod
 pytest
+pyyaml
+streamlit
+plotly
+pandas

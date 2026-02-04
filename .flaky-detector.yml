@@ -1,0 +1,40 @@
+# Flaky Test Detector Configuration
+# Place this file in the root of your repository to customize behavior
+
+# Test execution settings
+runs: 100                    # Number of times to run each test (1-1000)
+parallelism: 10             # Number of parallel workers (1-50)
+timeout: 600                # Timeout in seconds for entire job
+
+# Test command configuration
+# If not specified, uses the command from the job input
+# test_command: "pytest tests/ -v"
+
+# Patterns to ignore (tests that won't be checked for flakiness)
+ignore_patterns:
+  # - "test_known_flaky_*"
+  # - "*_integration_test"
+
+# Severity thresholds (0.0 to 1.0)
+severity_thresholds:
+  critical: 0.9   # >90% failure rate = likely a real bug
+  high: 0.5       # 50-90% failure rate = very unstable
+  medium: 0.1     # 10-50% failure rate = clear flaky behavior
+  low: 0.01       # 1-10% failure rate = occasional flakiness
+
+# Dependency installation
+auto_install_dependencies: true
+pip_install_timeout: 300
+
+# Resource management
+cleanup_on_failure: true
+preserve_temp_dir: false    # Keep temp directory for debugging
+
+# Reporting
+save_full_output: false      # Save full stdout/stderr for all runs
+max_error_length: 200        # Truncate errors longer than this
+
+# Advanced options
+random_seed_range:
+  min: 1
+  max: 1000000
