@@ -1,12 +1,46 @@
 # Serverless Flaky Test Detector
 
-A RunPod serverless function that detects flaky tests by running them multiple times in parallel with different random seeds. This tool helps identify non-deterministic test failures that can be difficult to reproduce in normal CI/CD environments.
+Automatically detect flaky tests by running them multiple times in parallel. Integrates seamlessly with GitHub Actions to provide immediate feedback on test failures.
 
-**📚 New to this project? Start with the [Step-by-Step Tutorial](docs/TUTORIAL.md)** — A comprehensive guide to building this system from scratch, following DigitalOcean's tutorial format with clear instructions, code examples, and troubleshooting tips.
+## 🚀 Quick Start
 
-**🌍 Multi-Language Support:** See [docs/MULTI_LANGUAGE.md](docs/MULTI_LANGUAGE.md) for extending support to Go, TypeScript, and other test frameworks beyond Python.
+### 1-Minute Setup
 
-**🧪 Example Flaky Tests:** Explore [examples/](examples/) for complete, working flaky test examples in all 5 supported languages (Python, Go, TypeScript/Jest, TypeScript/Vitest, JavaScript/Mocha).
+```bash
+# Run automated setup in your repository
+bash <(curl -s https://raw.githubusercontent.com/runpod-Henrik/serverless_test/main/setup.sh)
+```
+
+### Manual Setup (5 minutes)
+
+See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructions.
+
+## 📖 Documentation
+
+- **[Getting Started](docs/GETTING_STARTED.md)** - Quick setup guide (5 minutes)
+- **[Quick Reference](docs/QUICK_REFERENCE.md)** - Command cheat sheet
+- **[Configuration Guide](TEST_INPUT_FILES.md)** - Complete config reference
+- **[All Documentation](docs/README.md)** - Complete documentation index
+
+## What It Does
+
+**Problem**: Your CI tests fail randomly. Is it flaky or a real bug?
+
+**Solution**: Automatically runs failing tests 20+ times to determine:
+- 🔴 **100% failure** = Real bug, needs fixing
+- 🟡 **10-90% failure** = Flaky test, needs stabilizing
+- ✅ **0% failure** = One-time glitch, ignore
+
+**Result**: Know immediately whether to fix the code or fix the test.
+
+## Key Features
+
+- 🆕 **Auto-trigger**: Runs automatically when PR tests fail
+- ⚡ **Fast**: Parallel execution with configurable workers
+- 🌍 **Multi-language**: Python, Go, TypeScript, JavaScript
+- 🔧 **Easy setup**: One script to install
+- 📊 **Clear results**: PR comments with severity and recommendations
+- 🛡️ **Battle-tested**: 96 tests, 91% coverage, production-ready
 
 ## 🛡️ CI Failure Prevention (New!)
 
