@@ -322,14 +322,18 @@ jobs:
           try:
               cov_tree = ET.parse('coverage.xml')
               cov_root = cov_tree.getroot()
-              coverage = float(cov_root.attrib.get('line-rate', 0)) * 100
-          except:
+              line_rate = cov_root.attrib.get('line-rate', '0')
+              coverage = float(line_rate) * 100.0
+          except Exception as e:
+              print(f"Coverage parsing error: {e}")
               coverage = 0.0
 
           # Get previous coverage for delta calculation
           try:
-              previous_coverage = float(os.environ.get('PREV_COVERAGE', '0'))
-          except:
+              prev_cov_str = os.environ.get('PREV_COVERAGE', '0')
+              previous_coverage = float(prev_cov_str) if prev_cov_str else 0.0
+          except Exception as e:
+              print(f"Previous coverage parsing error: {e}")
               previous_coverage = 0.0
 
           # Write to GitHub summary
