@@ -335,9 +335,10 @@ jobs:
                   # Identify potentially affected tests
                   if failures + errors > 0 and python_files:
                       f.write('**Potential Breaking Changes:**\n')
-                      core_files = [f for f in python_files if f in ['worker.py', 'config.py', 'database.py']]
+                      core_files = [file for file in python_files if file in ['worker.py', 'config.py', 'database.py']]
                       if core_files:
-                          f.write(f'- ⚠️ Core modules modified: {", ".join([f"`{f}`" for f in core_files])}\n')
+                          core_files_str = ", ".join([f"`{file}`" for file in core_files])
+                          f.write(f'- ⚠️ Core modules modified: {core_files_str}\n')
                       if test_files:
                           f.write(f'- 🧪 Test files modified: {len(test_files)} file(s)\n')
                       f.write('\n')
