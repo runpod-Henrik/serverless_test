@@ -310,12 +310,17 @@ jobs:
           tree = ET.parse('test-results.xml')
           root = tree.getroot()
 
+          # Get testsuite element (root is testsuites, we need testsuite)
+          testsuite = root.find('testsuite')
+          if testsuite is None:
+              testsuite = root  # Fallback if structure is different
+
           # Extract statistics
-          tests = int(root.attrib.get('tests', 0))
-          failures = int(root.attrib.get('failures', 0))
-          errors = int(root.attrib.get('errors', 0))
-          skipped = int(root.attrib.get('skipped', 0))
-          time = float(root.attrib.get('time', 0))
+          tests = int(testsuite.attrib.get('tests', 0))
+          failures = int(testsuite.attrib.get('failures', 0))
+          errors = int(testsuite.attrib.get('errors', 0))
+          skipped = int(testsuite.attrib.get('skipped', 0))
+          time = float(testsuite.attrib.get('time', 0))
           passed = tests - failures - errors - skipped
 
           # Parse coverage from coverage.xml
@@ -460,7 +465,7 @@ jobs:
               # Failed tests details
               if failures + errors > 0:
                   f.write('### Failed Tests\n\n')
-                  for testcase in root.iter('testcase'):
+                  for testcase in testsuite.iter('testcase'):
                       failure = testcase.find('failure')
                       error = testcase.find('error')
 
