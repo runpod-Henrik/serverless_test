@@ -1,0 +1,14 @@
+{
+  "name": "flaky-test-mocha-example",
+  "version": "1.0.0",
+  "description": "Example flaky tests for Mocha",
+  "scripts": {
+    "test": "mocha",
+    "test:watch": "mocha --watch"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "chai": "^4.3.10",
+    "seedrandom": "^3.0.5"
+  }
+}
