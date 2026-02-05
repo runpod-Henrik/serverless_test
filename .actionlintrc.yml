@@ -5,6 +5,11 @@
 shellcheck:
   enable: true
   severity: warning
+  # Exclude style-only suggestions (SC2129, SC2126)
+  # These are optimizations, not errors
+  exclude-rules:
+    - SC2129  # Style: Consider using { cmd1; cmd2; } >> file
+    - SC2126  # Style: Consider using 'grep -c' instead of 'grep|wc -l'
 
 # Pyflakes integration for Python scripts
 pyflakes:
