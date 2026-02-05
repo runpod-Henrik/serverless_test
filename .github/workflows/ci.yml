@@ -44,8 +44,10 @@ jobs:
         id: ruff-format
         continue-on-error: true
         run: |
+          set +e
           ruff format --check . > ruff-format.txt 2>&1
           RESULT=$?
+          set -e
           echo "exit_code=$RESULT" >> "$GITHUB_OUTPUT"
           if [ "$RESULT" -ne 0 ]; then
             echo "## Formatting Errors" >> ruff-format.txt
