@@ -16,6 +16,7 @@ Complete documentation for understanding, installing, and using the flaky test d
 
 | Document | Description | For |
 |----------|-------------|-----|
+| **[RunPod Deployment](RUNPOD_TUTORIAL.md)** | Deploy to RunPod serverless platform | RunPod users |
 | **[Debugging Test Failures](DEBUGGING_TEST_FAILURES.md)** | Complete workflow for fixing failures | Developers |
 | **[CI/CD Integration](CICD_INTEGRATION.md)** | GitHub Actions setup & auto-trigger | DevOps |
 | **[Multi-Language Support](MULTI_LANGUAGE.md)** | Supporting different frameworks | Multi-language teams |
@@ -49,6 +50,9 @@ cat flaky_test_results.json | jq '.repro_rate'
 
 #### ...get started quickly
 → [Getting Started Guide](GETTING_STARTED.md)
+
+#### ...deploy to RunPod serverless
+→ [RunPod Deployment Tutorial](RUNPOD_TUTORIAL.md)
 
 #### ...debug a failing CI test
 → [Debugging Test Failures Guide](DEBUGGING_TEST_FAILURES.md)

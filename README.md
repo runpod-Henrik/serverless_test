@@ -845,6 +845,7 @@ runpod.Endpoint("your-endpoint-id").run({
 - **[Migration Guide](MIGRATION.md)** - Moving to a new repo/org
 
 ### Guides & Workflows
+- **[RunPod Deployment](docs/RUNPOD_TUTORIAL.md)** - ⭐ Deploy to RunPod serverless
 - **[CI/CD Integration](docs/CICD_INTEGRATION.md)** - GitHub Actions setup
 - **[Debugging Test Failures](docs/DEBUGGING_TEST_FAILURES.md)** - Complete workflow
 - **[Multi-Language Support](docs/MULTI_LANGUAGE.md)** - Go, TypeScript, JavaScript
@@ -867,6 +868,16 @@ pre-commit install
 
 # Read the prevention guide
 cat docs/PREVENTING_CI_FAILURES.md
+```
+
+**For RunPod Deployment:**
+```bash
+# Build and deploy to RunPod serverless
+docker build -t your-username/testflake:latest .
+docker push your-username/testflake:latest
+
+# Read the deployment tutorial
+cat docs/RUNPOD_TUTORIAL.md
 ```
 
 **For CI/CD Integration:**
