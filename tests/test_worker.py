@@ -12,7 +12,7 @@ sys.modules["runpod"] = MagicMock()
 sys.modules["runpod.serverless"] = MagicMock()
 
 # Now we can import worker
-from worker import handler, run_test_once
+from worker import detect_framework, get_seed_env_var, handler, install_dependencies, run_test_once
 
 
 class TestRunTestOnce:
@@ -386,3 +386,218 @@ class TestHandler:
                 # Should use defaults
                 assert result["total_runs"] == 10  # default
                 assert result["parallelism"] == 4  # default
+
+
+class TestDetectFramework:
+    """Test the detect_framework function."""
+
+    def test_detect_go_framework(self, tmp_path):
+        """Test detection of Go projects."""
+        # Create go.mod file
+        go_mod = tmp_path / "go.mod"
+        go_mod.write_text("module example.com/myproject\n\ngo 1.22")
+
+        framework = detect_framework(str(tmp_path))
+        assert framework == "go"
+
+    def test_detect_python_requirements(self, tmp_path):
+        """Test detection of Python projects with requirements.txt."""
+        # Create requirements.txt
+        requirements = tmp_path / "requirements.txt"
+        requirements.write_text("pytest==9.0.2\n")
+
+        framework = detect_framework(str(tmp_path))
+        assert framework == "python"
+
+    def test_detect_python_pyproject(self, tmp_path):
+        """Test detection of Python projects with pyproject.toml."""
+        # Create pyproject.toml
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[project]\nname = 'myproject'\n")
+
+        framework = detect_framework(str(tmp_path))
+        assert framework == "python"
+
+    def test_detect_typescript_jest(self, tmp_path):
+        """Test detection of TypeScript Jest projects."""
+        # Create package.json with jest
+        package_json = tmp_path / "package.json"
+        package_json.write_text('{"devDependencies": {"jest": "^29.0.0"}}')
+
+        framework = detect_framework(str(tmp_path))
+        assert framework == "typescript-jest"
+
+    def test_detect_typescript_vitest(self, tmp_path):
+        """Test detection of TypeScript Vitest projects."""
+        # Create package.json with vitest
+        package_json = tmp_path / "package.json"
+        package_json.write_text('{"devDependencies": {"vitest": "^1.0.0"}}')
+
+        framework = detect_framework(str(tmp_path))
+        assert framework == "typescript-vitest"
+
+    def test_detect_javascript_mocha(self, tmp_path):
+        """Test detection of JavaScript Mocha projects."""
+        # Create package.json with mocha
+        package_json = tmp_path / "package.json"
+        package_json.write_text('{"devDependencies": {"mocha": "^10.0.0"}}')
+
+        framework = detect_framework(str(tmp_path))
+        assert framework == "javascript-mocha"
+
+    def test_detect_unknown_framework(self, tmp_path):
+        """Test detection returns unknown for unrecognized projects."""
+        # Empty directory
+        framework = detect_framework(str(tmp_path))
+        assert framework == "unknown"
+
+    def test_detect_invalid_package_json(self, tmp_path):
+        """Test handling of invalid package.json."""
+        # Create invalid package.json
+        package_json = tmp_path / "package.json"
+        package_json.write_text("not valid json {")
+
+        # Should fall back to unknown
+        framework = detect_framework(str(tmp_path))
+        assert framework == "unknown"
+
+
+class TestGetSeedEnvVar:
+    """Test the get_seed_env_var function."""
+
+    def test_python_seed_var(self):
+        """Test Python seed environment variable."""
+        env = get_seed_env_var("python", 12345)
+        assert env == {"TEST_SEED": "12345"}
+
+    def test_go_seed_var(self):
+        """Test Go seed environment variable."""
+        env = get_seed_env_var("go", 67890)
+        assert env == {"GO_TEST_SEED": "67890"}
+
+    def test_typescript_jest_seed_var(self):
+        """Test TypeScript Jest seed environment variable."""
+        env = get_seed_env_var("typescript-jest", 11111)
+        assert env == {"JEST_SEED": "11111"}
+
+    def test_typescript_vitest_seed_var(self):
+        """Test TypeScript Vitest seed environment variable."""
+        env = get_seed_env_var("typescript-vitest", 22222)
+        assert env == {"VITE_TEST_SEED": "22222"}
+
+    def test_javascript_mocha_seed_var(self):
+        """Test JavaScript Mocha seed environment variable."""
+        env = get_seed_env_var("javascript-mocha", 33333)
+        assert env == {"MOCHA_SEED": "33333"}
+
+    def test_unknown_framework_fallback(self):
+        """Test unknown framework falls back to TEST_SEED."""
+        env = get_seed_env_var("unknown", 99999)
+        assert env == {"TEST_SEED": "99999"}
+
+
+class TestInstallDependencies:
+    """Test the install_dependencies function."""
+
+    @patch("worker.subprocess.run")
+    def test_install_python_dependencies(self, mock_run, tmp_path):
+        """Test installing Python dependencies."""
+        # Create requirements.txt
+        requirements = tmp_path / "requirements.txt"
+        requirements.write_text("pytest==9.0.2\n")
+
+        mock_run.return_value = Mock(returncode=0)
+
+        install_dependencies("python", str(tmp_path))
+
+        # Should have called pip install
+        mock_run.assert_called_once()
+        args = mock_run.call_args[0][0]
+        assert args == ["pip", "install", "-q", "-r", "requirements.txt"]
+
+    @patch("worker.subprocess.run")
+    def test_install_go_dependencies(self, mock_run, tmp_path):
+        """Test installing Go dependencies."""
+        # Create go.mod
+        go_mod = tmp_path / "go.mod"
+        go_mod.write_text("module example.com/myproject\n")
+
+        mock_run.return_value = Mock(returncode=0)
+
+        install_dependencies("go", str(tmp_path))
+
+        # Should have called go mod download
+        mock_run.assert_called_once()
+        args = mock_run.call_args[0][0]
+        assert args == ["go", "mod", "download"]
+
+    @patch("worker.subprocess.run")
+    def test_install_typescript_dependencies(self, mock_run, tmp_path):
+        """Test installing TypeScript/JavaScript dependencies."""
+        # Create package.json
+        package_json = tmp_path / "package.json"
+        package_json.write_text('{"dependencies": {}}')
+
+        mock_run.return_value = Mock(returncode=0)
+
+        install_dependencies("typescript-jest", str(tmp_path))
+
+        # Should have called npm install
+        mock_run.assert_called_once()
+        args = mock_run.call_args[0][0]
+        assert args == ["npm", "install", "--silent"]
+
+    def test_skip_install_without_dependency_file(self, tmp_path, capsys):
+        """Test skipping installation when dependency file doesn't exist."""
+        # No files created
+        install_dependencies("python", str(tmp_path))
+
+        # Should print skip message
+        captured = capsys.readouterr()
+        assert "No requirements.txt found" in captured.out
+
+    def test_skip_install_for_unknown_framework(self, tmp_path, capsys):
+        """Test skipping installation for unknown frameworks."""
+        install_dependencies("unknown", str(tmp_path))
+
+        # Should print warning
+        captured = capsys.readouterr()
+        assert "no dependency installation configured" in captured.out
+
+    @patch("worker.subprocess.run")
+    def test_handle_installation_failure(self, mock_run, tmp_path, capsys):
+        """Test handling of dependency installation failure."""
+        import subprocess
+
+        # Create requirements.txt
+        requirements = tmp_path / "requirements.txt"
+        requirements.write_text("invalid-package==999.999.999\n")
+
+        # Mock failed installation
+        mock_run.side_effect = subprocess.CalledProcessError(
+            1, ["pip", "install"], stderr="ERROR: Package not found"
+        )
+
+        install_dependencies("python", str(tmp_path))
+
+        # Should print warning but not raise
+        captured = capsys.readouterr()
+        assert "Warning: Failed to install dependencies" in captured.out
+
+    @patch("worker.subprocess.run")
+    def test_handle_installation_timeout(self, mock_run, tmp_path, capsys):
+        """Test handling of dependency installation timeout."""
+        import subprocess
+
+        # Create requirements.txt
+        requirements = tmp_path / "requirements.txt"
+        requirements.write_text("pytest==9.0.2\n")
+
+        # Mock timeout
+        mock_run.side_effect = subprocess.TimeoutExpired(["pip", "install"], 300)
+
+        install_dependencies("python", str(tmp_path))
+
+        # Should print timeout warning
+        captured = capsys.readouterr()
+        assert "Warning: Dependency installation timed out" in captured.out

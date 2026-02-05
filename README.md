@@ -308,39 +308,73 @@ Automatically detects flaky tests when CI fails:
 
 ## Deployment to RunPod
 
-### Step 1: Create a Docker Image
+### Step 1: Choose Your Docker Image
 
-Create a `Dockerfile` in the project root:
+The project includes two Dockerfile options:
 
-```dockerfile
-FROM runpod/base:0.4.0-cuda11.8.0
+#### Option A: Multi-Language Support (Default - `Dockerfile`)
+Includes Python, Node.js, and Go runtimes for testing projects in multiple languages.
 
-# Set working directory
-WORKDIR /app
-
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY worker.py .
-COPY run.sh .
-
-# Make run script executable
-RUN chmod +x run.sh
-
-# Start the worker
-CMD ["bash", "run.sh"]
-```
-
-Build and push the image:
+- **Size**: ~1.2 GB
+- **Supports**: Python, Go, TypeScript/Jest, TypeScript/Vitest, JavaScript/Mocha
+- **Use when**: You have polyglot projects or need to test multiple languages
 
 ```bash
-# Build the Docker image
+# Build multi-language image
 docker build -t your-username/flaky-test-detector:latest .
 
 # Push to Docker Hub
 docker push your-username/flaky-test-detector:latest
+```
+
+#### Option B: Python-Only (`Dockerfile.python-only`)
+Smaller image with only Python runtime for Python/pytest projects.
+
+- **Size**: ~285 MB
+- **Supports**: Python/pytest only
+- **Use when**: You only need Python test support
+
+```bash
+# Build Python-only image
+docker build -f Dockerfile.python-only -t your-username/flaky-test-detector:python-only .
+
+# Push to Docker Hub
+docker push your-username/flaky-test-detector:python-only
+```
+
+**Included Dockerfile** provides the multi-language setup:
+
+```dockerfile
+FROM python:3.12-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git curl wget ca-certificates gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 20.x for TypeScript/JavaScript
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Go 1.22
+RUN wget -q https://go.dev/dl/go1.22.0.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz && \
+    rm go1.22.0.linux-amd64.tar.gz
+
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY worker.py run.sh .
+RUN chmod +x run.sh
+
+# Verify all runtimes
+RUN python --version && node --version && go version
+
+CMD ["./run.sh"]
 ```
 
 ### Step 2: Deploy to RunPod
