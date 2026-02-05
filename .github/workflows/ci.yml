@@ -25,31 +25,103 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run ruff linter
+        id: ruff-lint
+        continue-on-error: true
         run: |
-          ruff check . --output-format=github
+          ruff check . --output-format=github > ruff-lint.txt 2>&1
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
 
       - name: Run ruff formatter check
+        id: ruff-format
+        continue-on-error: true
         run: |
-          ruff format --check .
+          ruff format --check . > ruff-format.txt 2>&1
+          RESULT=$?
+          echo "exit_code=$RESULT" >> $GITHUB_OUTPUT
+          if [ $RESULT -ne 0 ]; then
+            echo "## Formatting Errors" >> ruff-format.txt
+            ruff format --check . --diff >> ruff-format.txt 2>&1 || true
+          fi
 
       - name: Run mypy type checking
+        id: mypy
+        continue-on-error: true
         run: |
-          mypy worker.py config.py database.py
+          mypy worker.py config.py database.py > mypy.txt 2>&1
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
 
       - name: Generate lint and type check summary
         if: always()
         run: |
-          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          # Determine status icons
+          if [ "${{ steps.ruff-lint.outputs.exit_code }}" = "0" ]; then
+            LINT_STATUS="✅ Passed"
+          else
+            LINT_STATUS="❌ Failed"
+          fi
+
+          if [ "${{ steps.ruff-format.outputs.exit_code }}" = "0" ]; then
+            FORMAT_STATUS="✅ Passed"
+          else
+            FORMAT_STATUS="❌ Failed"
+          fi
+
+          if [ "${{ steps.mypy.outputs.exit_code }}" = "0" ]; then
+            MYPY_STATUS="✅ Passed"
+          else
+            MYPY_STATUS="❌ Failed"
+          fi
+
+          # Generate summary
+          cat >> $GITHUB_STEP_SUMMARY << EOF
           ## Code Quality Summary
 
           | Check | Status |
           |-------|--------|
-          | 🔍 Ruff Linting | ✅ Passed |
-          | 📝 Code Formatting | ✅ Passed |
-          | 🔒 Type Checking | ✅ Passed |
-
-          All code quality checks completed successfully!
+          | 🔍 Ruff Linting | $LINT_STATUS |
+          | 📝 Code Formatting | $FORMAT_STATUS |
+          | 🔒 Type Checking | $MYPY_STATUS |
           EOF
+
+          # Add error details if any check failed
+          if [ "${{ steps.ruff-lint.outputs.exit_code }}" != "0" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔍 Linting Errors" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat ruff-lint.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.ruff-format.outputs.exit_code }}" != "0" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📝 Formatting Errors" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat ruff-format.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.mypy.outputs.exit_code }}" != "0" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔒 Type Checking Errors" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat mypy.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # All checks passed message
+          if [ "${{ steps.ruff-lint.outputs.exit_code }}" = "0" ] && \
+             [ "${{ steps.ruff-format.outputs.exit_code }}" = "0" ] && \
+             [ "${{ steps.mypy.outputs.exit_code }}" = "0" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All code quality checks completed successfully!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Fail the workflow if any check failed
+          if [ "${{ steps.ruff-lint.outputs.exit_code }}" != "0" ] || \
+             [ "${{ steps.ruff-format.outputs.exit_code }}" != "0" ] || \
+             [ "${{ steps.mypy.outputs.exit_code }}" != "0" ]; then
+            exit 1
+          fi
 
   test:
     name: Test Suite

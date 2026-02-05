@@ -62,8 +62,7 @@ def test_boundary_condition():
     threshold = 100
 
     # Fails when value exceeds threshold
-    assert calculated_value <= threshold, \
-        f"Value {calculated_value} exceeds threshold {threshold}"
+    assert calculated_value <= threshold, f"Value {calculated_value} exceeds threshold {threshold}"
 
 
 def test_concurrent_access():

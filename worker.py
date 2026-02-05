@@ -10,7 +10,9 @@ from typing import Any, Literal
 
 import runpod
 
-FrameworkType = Literal["python", "go", "typescript-jest", "typescript-vitest", "javascript-mocha", "unknown"]
+FrameworkType = Literal[
+    "python", "go", "typescript-jest", "typescript-vitest", "javascript-mocha", "unknown"
+]
 
 
 def detect_framework(repo_path: str) -> FrameworkType:
@@ -37,9 +39,11 @@ def detect_framework(repo_path: str) -> FrameworkType:
             pass
 
     # Check for Python
-    if os.path.exists(os.path.join(repo_path, "requirements.txt")) or \
-       os.path.exists(os.path.join(repo_path, "pyproject.toml")) or \
-       os.path.exists(os.path.join(repo_path, "setup.py")):
+    if (
+        os.path.exists(os.path.join(repo_path, "requirements.txt"))
+        or os.path.exists(os.path.join(repo_path, "pyproject.toml"))
+        or os.path.exists(os.path.join(repo_path, "setup.py"))
+    ):
         return "python"
 
     return "unknown"
@@ -192,7 +196,13 @@ def handler(job: dict[str, Any]) -> dict[str, Any]:
         # Detect or use explicit framework
         if framework_override:
             # User provided explicit framework
-            if framework_override in ("python", "go", "typescript-jest", "typescript-vitest", "javascript-mocha"):
+            if framework_override in (
+                "python",
+                "go",
+                "typescript-jest",
+                "typescript-vitest",
+                "javascript-mocha",
+            ):
                 detected_framework = framework_override
             else:
                 detected_framework = "unknown"
