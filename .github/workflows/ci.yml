@@ -244,12 +244,13 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
-          pytest tests/test_config.py tests/test_database.py tests/test_worker.py \
+          pytest tests/test_config.py tests/test_database.py tests/test_worker.py tests/test_validate_input.py \
             -v \
             --tb=short \
             --cov=worker \
             --cov=config \
             --cov=database \
+            --cov=validate_input \
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-report=html \

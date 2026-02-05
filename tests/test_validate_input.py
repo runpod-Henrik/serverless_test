@@ -211,3 +211,16 @@ class TestValidateInput:
         captured = capsys.readouterr()
         assert "❌" in captured.out
         assert "test.json" in captured.out
+
+    def test_validate_with_custom_schema_path(self):
+        """Test validation with custom schema path."""
+        import os
+
+        config = {
+            "repo": "https://github.com/user/repo",
+            "test_command": "pytest tests/",
+        }
+        schema_path = os.path.join(os.path.dirname(__file__), "..", "input_schema.json")
+        is_valid, errors = validate_input(config, schema_path=schema_path)
+        assert is_valid
+        assert len(errors) == 0
