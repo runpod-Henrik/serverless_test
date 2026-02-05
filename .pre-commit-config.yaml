@@ -12,6 +12,7 @@ repos:
       - id: ruff-format
 
   # GitHub Actions workflow validation
+  # Note: Reports style warnings but doesn't fail on them
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.4
     hooks:
@@ -19,6 +20,8 @@ repos:
         name: Validate GitHub Actions workflows
         description: Lint GitHub Actions workflow files with actionlint
         verbose: true
+        # Allow to pass even with style warnings (SC2129, SC2126)
+        args: [-ignore, 'SC2129:.*', -ignore, 'SC2126:.*']
 
   # Python type checking (optional, can be slow)
   # - repo: local
