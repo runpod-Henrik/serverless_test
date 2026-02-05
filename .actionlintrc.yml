@@ -1,0 +1,42 @@
+# actionlint configuration
+# https://github.com/rhysd/actionlint
+
+# Shellcheck integration
+shellcheck:
+  enable: true
+  severity: warning
+
+# Pyflakes integration for Python scripts
+pyflakes:
+  enable: true
+  python: "3.12"
+
+# Ignore patterns
+ignore:
+  # Ignore node_modules in examples
+  - "examples/*/node_modules/**"
+  # Ignore temp directories
+  - "**/temp/**"
+  - "**/.pytest_cache/**"
+
+# Custom rules
+rules:
+  # Require specific action versions (no @latest or @master)
+  action-ref:
+    enable: true
+
+  # Check for deprecated commands
+  deprecated-commands:
+    enable: true
+
+  # Validate job and step names
+  job-name:
+    enable: true
+
+  # Check for missing required fields
+  required-field:
+    enable: true
+
+  # Validate workflow trigger syntax
+  workflow-call:
+    enable: true

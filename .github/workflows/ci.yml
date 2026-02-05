@@ -24,6 +24,11 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Validate GitHub Actions workflows
+        uses: docker://rhysd/actionlint:latest
+        with:
+          args: -color -verbose
+
       - name: Run ruff linter
         id: ruff-lint
         continue-on-error: true
