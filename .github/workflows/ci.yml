@@ -131,6 +131,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for git diff comparisons
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -186,8 +188,19 @@ jobs:
       - name: Analyze code changes
         id: changes
         if: always() && steps.last-success.outputs.sha != ''
+        continue-on-error: true
         run: |
           LAST_SHA="${{ steps.last-success.outputs.sha }}"
+
+          # Verify the commit exists
+          if ! git cat-file -e $LAST_SHA^{commit} 2>/dev/null; then
+            echo "Warning: Last successful commit $LAST_SHA not found in history"
+            echo "total_changed=0" >> $GITHUB_OUTPUT
+            echo "python_changed=0" >> $GITHUB_OUTPUT
+            echo "workflow_changed=0" >> $GITHUB_OUTPUT
+            echo "commit_count=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
 
           # Get changed files
           git diff --name-only $LAST_SHA HEAD > changed_files.txt
