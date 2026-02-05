@@ -6,6 +6,8 @@ A RunPod serverless function that detects flaky tests by running them multiple t
 
 **🌍 Multi-Language Support:** See [MULTI_LANGUAGE.md](MULTI_LANGUAGE.md) for extending support to Go, TypeScript, and other test frameworks beyond Python.
 
+**🧪 Example Flaky Tests:** Explore [examples/](examples/) for complete, working flaky test examples in all 5 supported languages (Python, Go, TypeScript/Jest, TypeScript/Vitest, JavaScript/Mocha).
+
 ## Features
 
 - **Parallel Test Execution**: Run tests multiple times concurrently to quickly identify flakiness
@@ -118,6 +120,44 @@ pytest tests/  # Uses settings from pyproject.toml
 # Run integration tests
 python3 test_new_features.py
 ```
+
+### Testing Multi-Language Examples
+
+Explore complete flaky test examples for all supported languages:
+
+```bash
+# Python/pytest
+cd examples/python
+pip install -r requirements.txt
+TEST_SEED=12345 pytest test_flaky.py -v
+
+# Go
+cd examples/go
+GO_TEST_SEED=12345 go test -v
+
+# TypeScript/Jest
+cd examples/typescript-jest
+npm install
+JEST_SEED=12345 npm test
+
+# TypeScript/Vitest
+cd examples/typescript-vitest
+npm install
+VITE_TEST_SEED=12345 npm test
+
+# JavaScript/Mocha
+cd examples/javascript-mocha
+npm install
+MOCHA_SEED=12345 npm test
+```
+
+Each example includes:
+- ✅ 6-12 realistic flaky test patterns
+- ✅ Seed configuration for reproducible randomness
+- ✅ Complete README with usage instructions
+- ✅ All necessary dependencies and configuration files
+
+See [examples/README.md](examples/README.md) for detailed documentation.
 
 ### Testing the Worker Locally
 

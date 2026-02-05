@@ -298,6 +298,15 @@ def test_order_processing_is_eventually_consistent():
 
 This test uses the `TEST_SEED` environment variable (set by the handler) to get different random values on each run, simulating non-deterministic test behavior.
 
+**💡 Want more examples?** The repository includes complete flaky test examples for all 5 supported languages in the `examples/` directory:
+- Python/pytest: 6 flaky patterns
+- Go: 8 patterns including goroutines and channels
+- TypeScript/Jest: 10 patterns with async/promises
+- TypeScript/Vitest: 10 patterns with ESM
+- JavaScript/Mocha: 12 patterns with callbacks
+
+Each example includes setup instructions and realistic flaky scenarios. See [examples/README.md](examples/README.md).
+
 ## Step 5 — Building the Docker Container
 
 RunPod requires your application to be packaged as a Docker image. Create a `Dockerfile` in your project root:
