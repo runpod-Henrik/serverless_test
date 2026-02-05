@@ -315,12 +315,18 @@ jobs:
           if testsuite is None:
               testsuite = root  # Fallback if structure is different
 
+          # Debug: print all attributes
+          print(f"DEBUG: testsuite tag={testsuite.tag}")
+          print(f"DEBUG: testsuite attrib={testsuite.attrib}")
+
           # Extract statistics
           tests = int(testsuite.attrib.get('tests', 0))
           failures = int(testsuite.attrib.get('failures', 0))
           errors = int(testsuite.attrib.get('errors', 0))
           skipped = int(testsuite.attrib.get('skipped', 0))
-          time = float(testsuite.attrib.get('time', 0))
+          time_str = testsuite.attrib.get('time', '0')
+          print(f"DEBUG: time_str from XML = '{time_str}' (type={type(time_str)})")
+          time = float(time_str)
           passed = tests - failures - errors - skipped
 
           # Parse coverage from coverage.xml
