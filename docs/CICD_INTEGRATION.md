@@ -22,12 +22,77 @@ With proper prevention in place, CI should pass >90% of the time, reducing the n
 
 The integration works by:
 1. Your normal CI/CD tests run
-2. If tests fail, the flaky test detector workflow triggers
-3. Failed tests are re-run 100+ times in parallel on RunPod
+2. If tests fail, the flaky test detector workflow triggers automatically
+3. Failed tests are re-run 20-30 times to determine reproducibility
 4. Results are posted to:
-   - GitHub PR comments (with severity indicators)
-   - Slack/Discord notifications
+   - GitHub PR comments (with severity indicators and recommendations)
    - CI/CD artifacts for detailed analysis
+
+## Auto-Trigger on Test Failures (NEW!)
+
+The flaky detector now automatically runs when tests fail in pull requests. This provides immediate feedback on whether a test failure is flaky or reproducible.
+
+### How It Works
+
+1. **Test Failure**: Your CI tests fail in a pull request
+2. **Auto-Detection**: Flaky detector workflow triggers automatically
+3. **Analysis**: Test is run 20 times (configurable) to determine reproducibility
+4. **PR Comment**: Results are posted with:
+   - Reproduction rate (e.g., "18/20 runs failed = 90%")
+   - Severity indicator (🔴 CRITICAL, 🟠 HIGH, 🟡 MEDIUM, 🟢 LOW)
+   - Recommended next steps
+   - Whether it's a flaky test or a real bug
+
+### Configuration
+
+Control auto-trigger behavior in `.flaky-detector.yml`:
+
+```yaml
+# CI/CD Integration
+auto_trigger_on_failure: true  # Enable/disable auto-trigger (default: true)
+auto_trigger_runs: 20          # Number of runs (1-1000, default: 20)
+auto_trigger_parallelism: 5    # Parallel workers (1-50, default: 5)
+```
+
+**To disable auto-trigger:**
+```yaml
+auto_trigger_on_failure: false
+```
+
+### Example PR Comment
+
+When tests fail, you'll automatically get a comment like:
+
+```
+## 🔍 Flaky Test Detector Results
+
+**Test Reproducibility Analysis**
+
+🔴 CRITICAL: Very high failure rate (>90%) - likely a real bug!
+
+### Results
+- **Reproduction Rate**: 95.0%
+- **Failures**: 19/20 runs
+- **Confidence**: High (based on 20 test runs)
+
+### What This Means
+
+This appears to be a **consistent, reproducible failure** rather than flakiness.
+The test failed in 19 out of 20 runs.
+
+**Next Steps:**
+1. Review the test failure logs in the failed CI run
+2. The high reproduction rate suggests a real bug in the code
+3. Debug locally using: `python3 local_test.py`
+```
+
+### Benefits
+
+- **Immediate Feedback**: Know instantly if a failure is flaky or real
+- **Save Time**: Skip lengthy flaky test investigations
+- **Better PRs**: Clear guidance on how to fix the issue
+- **No Setup**: Works automatically in pull requests
+- **Configurable**: Adjust runs/parallelism based on your needs
 
 ## GitHub Actions Setup
 

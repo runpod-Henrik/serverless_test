@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/runpod-Henrik/serverless_test/schemas/input.json",
+  "title": "Flaky Test Detector Input Configuration",
+  "description": "Configuration schema for running the flaky test detector",
+  "type": "object",
+  "required": ["repo", "test_command"],
+  "properties": {
+    "repo": {
+      "type": "string",
+      "description": "Repository URL (https://, git@) or local filesystem path",
+      "minLength": 1,
+      "examples": [
+        "https://github.com/user/repo",
+        "git@github.com:user/repo.git",
+        "/path/to/local/repo"
+      ]
+    },
+    "test_command": {
+      "type": "string",
+      "description": "Command to execute the test (e.g., pytest, go test, npm test)",
+      "minLength": 1,
+      "examples": [
+        "pytest tests/test_flaky.py",
+        "go test -v ./pkg/...",
+        "npm test -- tests/flaky.spec.js"
+      ]
+    },
+    "runs": {
+      "type": "integer",
+      "description": "Number of times to run the test",
+      "minimum": 1,
+      "maximum": 1000,
+      "default": 10
+    },
+    "parallelism": {
+      "type": "integer",
+      "description": "Number of parallel test workers",
+      "minimum": 1,
+      "maximum": 50,
+      "default": 4
+    },
+    "framework": {
+      "type": "string",
+      "description": "Force a specific test framework (auto-detected if not provided)",
+      "enum": [
+        "python",
+        "go",
+        "typescript-jest",
+        "typescript-vitest",
+        "javascript-mocha"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

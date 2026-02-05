@@ -87,6 +87,25 @@ Both files now support local repository paths for faster development:
 - Testing work-in-progress code
 - Quick validation before commit
 
+## Schema Validation
+
+Both input files are automatically validated against `input_schema.json` when you run `local_test.py`. This catches configuration errors before running tests:
+
+```bash
+❌ Invalid configuration in test_input.json:
+
+   1. runs: 'invalid' is not of type 'integer'
+   2. parallelism: 100 is greater than the maximum of 50
+
+💡 See input_schema.json for the complete configuration specification
+```
+
+The validation checks:
+- Required fields are present (repo, test_command)
+- Field types are correct (strings, integers)
+- Values are within valid ranges
+- No unknown fields are present
+
 ## Configuration Fields
 
 ### Required Fields

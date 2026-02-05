@@ -46,8 +46,9 @@ python scripts/validate_flaky_detector.py
 - **Seed Randomization**: Each test run uses a unique random seed to expose timing-dependent bugs
 - **Multi-Language Support**: Python/pytest (built-in), Go, TypeScript/Jest, and more (see [docs/MULTI_LANGUAGE.md](docs/MULTI_LANGUAGE.md))
 - **Automatic Dependency Installation**: Installs requirements.txt automatically from cloned repositories
-- **CI/CD Integration**: Automatically detect flaky tests when CI/CD tests fail (GitHub Actions, GitLab CI, etc.)
-- **Multi-Channel Reporting**: Post results to PR comments, Slack, Discord, or CI/CD logs
+- **🆕 Auto-Trigger on Test Failures**: Automatically runs when PR tests fail to immediately determine if it's flaky or a real bug
+- **CI/CD Integration**: Deep integration with GitHub Actions with automatic PR comments and severity indicators
+- **Multi-Channel Reporting**: Post results to PR comments with actionable recommendations
 - **Configuration File Support**: Customize behavior per-repository with `.flaky-detector.yml`
 - **Historical Tracking**: SQLite database tracks test results over time with trend analysis
 - **Interactive Dashboard**: Streamlit-based dashboard for visualizing flakiness patterns

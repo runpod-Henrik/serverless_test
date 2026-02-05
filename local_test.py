@@ -6,9 +6,16 @@ This simulates what RunPod does without needing the RunPod infrastructure.
 # Import handler directly by loading the module without starting serverless
 import importlib.util
 import json
+import os
 import sys
 
-spec = importlib.util.spec_from_file_location("worker_module", "worker.py")
+# Add project directory to sys.path to ensure worker.py can import config
+project_dir = os.path.dirname(os.path.abspath(__file__))
+if project_dir not in sys.path:
+    sys.path.insert(0, project_dir)
+
+worker_path = os.path.join(project_dir, "worker.py")
+spec = importlib.util.spec_from_file_location("worker_module", worker_path)
 worker_module = importlib.util.module_from_spec(spec)
 sys.modules["worker_module"] = worker_module
 
@@ -29,7 +36,8 @@ runpod.serverless.start = original_start
 def main():
     # Load test input
     try:
-        with open("test_input.json") as f:
+        test_input_path = os.path.join(project_dir, "test_input.json")
+        with open(test_input_path) as f:
             test_input = json.load(f)
     except FileNotFoundError:
         print("❌ test_input.json not found")
@@ -40,6 +48,18 @@ def main():
             "runs": 50,
             "parallelism": 5,
         }
+
+    # Validate input configuration
+    try:
+        from validate_input import validate_and_report
+        if not validate_and_report(test_input, "test_input.json"):
+            return 1
+    except ImportError:
+        # validate_input module not available - skip validation
+        pass
+    except Exception as e:
+        print(f"⚠️  Warning: Could not validate configuration: {e}")
+        print("   Proceeding anyway...")
 
     print("🔍 Running flaky test detector locally...")
     print(f"   Repository: {test_input['repo']}")
@@ -79,9 +99,10 @@ def main():
             print("✅ NONE: No flakiness detected")
 
         # Save detailed results
-        with open("flaky_test_results.json", "w") as f:
+        results_path = os.path.join(project_dir, "flaky_test_results.json")
+        with open(results_path, "w") as f:
             json.dump(result, f, indent=2)
-        print("\n📄 Detailed results saved to: flaky_test_results.json")
+        print(f"\n📄 Detailed results saved to: {results_path}")
 
     except Exception as e:
         print(f"\n❌ Error: {e}")

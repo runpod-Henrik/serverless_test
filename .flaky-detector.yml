@@ -30,6 +30,11 @@ pip_install_timeout: 300
 cleanup_on_failure: true
 preserve_temp_dir: false    # Keep temp directory for debugging
 
+# CI/CD Integration
+auto_trigger_on_failure: true  # Automatically run flaky detector when tests fail in CI
+auto_trigger_runs: 20          # Number of runs for auto-triggered detection (1-1000)
+auto_trigger_parallelism: 5    # Parallelism for auto-triggered runs (1-50)
+
 # Reporting
 save_full_output: false      # Save full stdout/stderr for all runs
 max_error_length: 200        # Truncate errors longer than this

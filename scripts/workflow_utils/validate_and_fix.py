@@ -152,7 +152,11 @@ Focus on practical, working solutions."""
             messages=[{"role": "user", "content": prompt}],
         )
 
-        return str(message.content[0].text)  # type: ignore[union-attr]
+        # Extract text from the first content block
+        first_block = message.content[0]
+        if hasattr(first_block, "text"):
+            return str(first_block.text)
+        return None
     except Exception as e:
         print(f"Error calling Claude API: {e}", file=sys.stderr)
         return None

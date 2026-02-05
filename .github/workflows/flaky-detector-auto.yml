@@ -1,0 +1,302 @@
+name: Flaky Test Detector
+
+# Automatically run flaky detector when test failures occur
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main, dev]
+
+permissions:
+  pull-requests: write
+  contents: read
+  actions: read
+
+jobs:
+  detect-flaky-tests:
+    name: Analyze Test Failures
+    runs-on: ubuntu-latest
+    # Only run if the CI workflow failed and it was triggered by a pull request
+    if: |
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Check if auto-trigger is enabled
+        id: check-config
+        run: |
+          # Check if auto-trigger is enabled in .flaky-detector.yml
+          if [ -f .flaky-detector.yml ]; then
+            # Use Python to parse YAML
+            AUTO_TRIGGER=$(python3 -c "
+            import yaml
+            import sys
+            try:
+                with open('.flaky-detector.yml') as f:
+                    config = yaml.safe_load(f)
+                    print(str(config.get('auto_trigger_on_failure', True)).lower())
+            except:
+                print('true')  # Default to enabled if config missing/invalid
+            ")
+            echo "enabled=$AUTO_TRIGGER" >> "$GITHUB_OUTPUT"
+
+            # Get auto-trigger runs and parallelism
+            RUNS=$(python3 -c "
+            import yaml
+            try:
+                with open('.flaky-detector.yml') as f:
+                    config = yaml.safe_load(f)
+                    print(config.get('auto_trigger_runs', 20))
+            except:
+                print(20)
+            ")
+            echo "runs=$RUNS" >> "$GITHUB_OUTPUT"
+
+            PARALLELISM=$(python3 -c "
+            import yaml
+            try:
+                with open('.flaky-detector.yml') as f:
+                    config = yaml.safe_load(f)
+                    print(config.get('auto_trigger_parallelism', 5))
+            except:
+                print(5)
+            ")
+            echo "parallelism=$PARALLELISM" >> "$GITHUB_OUTPUT"
+          else
+            # No config file - enable by default
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "runs=20" >> "$GITHUB_OUTPUT"
+            echo "parallelism=5" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Get failed test information
+        id: failed-tests
+        if: steps.check-config.outputs.enabled == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get the workflow run details
+            const runId = context.payload.workflow_run.id;
+
+            // Get jobs for this workflow run
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
+
+            // Find the test job
+            const testJob = jobs.data.jobs.find(job => job.name === 'Test Suite');
+
+            if (!testJob) {
+              console.log('Test Suite job not found');
+              core.setOutput('has_test_failures', 'false');
+              return;
+            }
+
+            // Check if test job failed
+            if (testJob.conclusion === 'failure') {
+              console.log('Test failures detected');
+              core.setOutput('has_test_failures', 'true');
+              core.setOutput('job_id', testJob.id);
+            } else {
+              console.log('No test failures');
+              core.setOutput('has_test_failures', 'false');
+            }
+
+      - name: Run flaky detector on failed tests
+        id: flaky-detector
+        if: |
+          steps.check-config.outputs.enabled == 'true' &&
+          steps.failed-tests.outputs.has_test_failures == 'true'
+        run: |
+          echo "Running flaky test detector..."
+
+          # Create input configuration using values from .flaky-detector.yml
+          RUNS="${{ steps.check-config.outputs.runs }}"
+          PARALLELISM="${{ steps.check-config.outputs.parallelism }}"
+
+          cat > test_input.json << EOF
+          {
+            "repo": "${{ github.repository }}",
+            "test_command": "pytest tests/ -v",
+            "runs": $RUNS,
+            "parallelism": $PARALLELISM
+          }
+          EOF
+
+          # Run the flaky detector
+          python3 local_test.py > flaky_results.txt 2>&1 || true
+
+          # Extract key metrics
+          if [ -f flaky_test_results.json ]; then
+            REPRO_RATE=$(jq -r '.repro_rate' flaky_test_results.json)
+            FAILURES=$(jq -r '.failures' flaky_test_results.json)
+            TOTAL_RUNS=$(jq -r '.total_runs' flaky_test_results.json)
+
+            echo "repro_rate=$REPRO_RATE" >> "$GITHUB_OUTPUT"
+            echo "failures=$FAILURES" >> "$GITHUB_OUTPUT"
+            echo "total_runs=$TOTAL_RUNS" >> "$GITHUB_OUTPUT"
+
+            # Determine severity
+            if (( $(echo "$REPRO_RATE > 0.9" | bc -l) )); then
+              SEVERITY="🔴 CRITICAL"
+              MESSAGE="Very high failure rate (>90%) - likely a real bug!"
+            elif (( $(echo "$REPRO_RATE > 0.5" | bc -l) )); then
+              SEVERITY="🟠 HIGH"
+              MESSAGE="Test fails frequently - needs investigation"
+            elif (( $(echo "$REPRO_RATE > 0.1" | bc -l) )); then
+              SEVERITY="🟡 MEDIUM"
+              MESSAGE="Clear flaky behavior detected"
+            elif (( $(echo "$REPRO_RATE > 0" | bc -l) )); then
+              SEVERITY="🟢 LOW"
+              MESSAGE="Occasional flakiness"
+            else
+              SEVERITY="✅ NONE"
+              MESSAGE="No flakiness detected - consistent test failure"
+            fi
+
+            echo "severity=$SEVERITY" >> "$GITHUB_OUTPUT"
+            echo "message=$MESSAGE" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Get PR number
+        id: pr-number
+        if: |
+          steps.check-config.outputs.enabled == 'true' &&
+          steps.failed-tests.outputs.has_test_failures == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runId = context.payload.workflow_run.id;
+
+            // Get associated pull requests
+            const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.payload.workflow_run.head_sha,
+            });
+
+            if (prs.data.length > 0) {
+              core.setOutput('number', prs.data[0].number);
+              return prs.data[0].number;
+            } else {
+              core.setOutput('number', '');
+              return '';
+            }
+
+      - name: Comment on PR with results
+        if: |
+          steps.check-config.outputs.enabled == 'true' &&
+          steps.failed-tests.outputs.has_test_failures == 'true' &&
+          steps.pr-number.outputs.number != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = '${{ steps.pr-number.outputs.number }}';
+            const repoRate = '${{ steps.flaky-detector.outputs.repro_rate }}';
+            const failures = '${{ steps.flaky-detector.outputs.failures }}';
+            const totalRuns = '${{ steps.flaky-detector.outputs.total_runs }}';
+            const severity = '${{ steps.flaky-detector.outputs.severity }}';
+            const message = '${{ steps.flaky-detector.outputs.message }}';
+
+            const body = `## 🔍 Flaky Test Detector Results
+
+            **Test Reproducibility Analysis**
+
+            ${severity}: ${message}
+
+            ### Results
+            - **Reproduction Rate**: ${(parseFloat(repoRate) * 100).toFixed(1)}%
+            - **Failures**: ${failures}/${totalRuns} runs
+            - **Confidence**: ${ failures >= 15 ? 'High' : failures >= 10 ? 'Medium' : 'Low' } (based on ${totalRuns} test runs)
+
+            ### What This Means
+
+            ${parseFloat(repoRate) > 0.9 ? `
+            This appears to be a **consistent, reproducible failure** rather than flakiness. The test failed in ${failures} out of ${totalRuns} runs.
+
+            **Next Steps:**
+            1. Review the test failure logs in the [failed CI run](${{ github.event.workflow_run.html_url }})
+            2. The high reproduction rate suggests a real bug in the code
+            3. Debug locally using: \`python3 local_test.py\`
+            ` : parseFloat(repoRate) > 0.5 ? `
+            This test shows **significant flakiness**. It fails inconsistently, which can mask real issues.
+
+            **Next Steps:**
+            1. Investigate timing, concurrency, or state management issues
+            2. Check for race conditions or dependency on external state
+            3. Run locally with: \`python3 local_test.py\`
+            ` : parseFloat(repoRate) > 0 ? `
+            This test shows **intermittent flakiness**. Consider stabilizing it to improve CI reliability.
+
+            **Next Steps:**
+            1. Review test setup and teardown
+            2. Check for timing sensitivities
+            3. May need more runs for conclusive analysis
+            ` : `
+            The test **failed consistently** (100% reproduction rate), indicating this is not a flaky test.
+
+            **Next Steps:**
+            1. This is a reliable test failure
+            2. Fix the underlying issue
+            3. The test is working as intended
+            `}
+
+            ---
+            <sub>🤖 Automated analysis by [Flaky Test Detector](https://github.com/runpod-Henrik/serverless_test)</sub>
+            `;
+
+            // Post or update comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            // Find existing flaky detector comment
+            const existingComment = comments.find(comment =>
+              comment.body.includes('🔍 Flaky Test Detector Results')
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body,
+              });
+            }
+
+      - name: Upload flaky detector results
+        if: |
+          steps.check-config.outputs.enabled == 'true' &&
+          steps.failed-tests.outputs.has_test_failures == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-detector-results
+          path: |
+            flaky_test_results.json
+            flaky_results.txt
+          retention-days: 30
