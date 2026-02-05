@@ -315,18 +315,12 @@ jobs:
           if testsuite is None:
               testsuite = root  # Fallback if structure is different
 
-          # Debug: print all attributes
-          print(f"DEBUG: testsuite tag={testsuite.tag}")
-          print(f"DEBUG: testsuite attrib={testsuite.attrib}")
-
           # Extract statistics
           tests = int(testsuite.attrib.get('tests', 0))
           failures = int(testsuite.attrib.get('failures', 0))
           errors = int(testsuite.attrib.get('errors', 0))
           skipped = int(testsuite.attrib.get('skipped', 0))
-          time_str = testsuite.attrib.get('time', '0')
-          print(f"DEBUG: time_str from XML = '{time_str}' (type={type(time_str)})")
-          time = float(time_str)
+          time = float(testsuite.attrib.get('time', '0'))
           passed = tests - failures - errors - skipped
 
           # Parse coverage from coverage.xml
@@ -510,14 +504,6 @@ jobs:
 
               # Highlight negative coverage delta
               if coverage_delta is not None and coverage_delta < 0:
-                  # Ensure types are correct (debugging)
-                  print(f"DEBUG: coverage_delta type={type(coverage_delta)}, value={coverage_delta}")
-                  print(f"DEBUG: previous_coverage type={type(previous_coverage)}, value={previous_coverage}")
-                  print(f"DEBUG: coverage type={type(coverage)}, value={coverage}")
-                  # Force conversion to float
-                  coverage_delta = float(coverage_delta) if not isinstance(coverage_delta, float) else coverage_delta
-                  previous_coverage = float(previous_coverage) if not isinstance(previous_coverage, float) else previous_coverage
-                  coverage = float(coverage) if not isinstance(coverage, float) else coverage
                   f.write(f'\n⚠️ **Coverage decreased by {abs(coverage_delta):.1f}%** ')
                   f.write(f'(was {previous_coverage:.1f}%, now {coverage:.1f}%)\n')
           EOF
