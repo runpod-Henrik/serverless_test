@@ -1,0 +1,10 @@
+# Minimal production dependencies for serverless deployment
+# Use this for smaller Docker images (~285MB vs ~1.5GB)
+
+# Core dependencies only
+runpod==1.8.1
+pytest==9.0.2
+PyYAML==6.0.3
+
+# Note: This excludes dashboard (streamlit, plotly, pandas) and dev tools
+# For local development with full features, use requirements.txt instead

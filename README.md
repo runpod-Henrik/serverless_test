@@ -330,9 +330,10 @@ docker push your-username/flaky-test-detector:latest
 #### Option B: Python-Only (`Dockerfile.python-only`)
 Smaller image with only Python runtime for Python/pytest projects.
 
-- **Size**: ~285 MB
+- **Size**: ~1.5 GB
 - **Supports**: Python/pytest only
 - **Use when**: You only need Python test support
+- **Note**: Includes all dependencies (Streamlit, Plotly, etc.). For a minimal production image (~285MB), use requirements-minimal.txt (contains only runpod, pytest, PyYAML)
 
 ```bash
 # Build Python-only image
