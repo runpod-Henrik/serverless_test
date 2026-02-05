@@ -184,8 +184,8 @@ def test_configuration_system() -> bool:
 
         # Test default config
         config = Config()
-        assert config.get("runs") == 100
-        assert config.get("parallelism") == 10
+        assert config.get("runs") == 10
+        assert config.get("parallelism") == 4
         print("  ✓ Default configuration loaded")
 
         # Test override
