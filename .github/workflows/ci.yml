@@ -475,7 +475,12 @@ jobs:
                           test_time = testcase.attrib.get('time', '0')
 
                           f.write(f'#### ❌ `{classname}.{name}`\n\n')
-                          f.write(f'- **Duration:** {float(test_time):.2f}s\n')
+                          # Safely convert test time to float
+                          try:
+                              test_time_float = float(test_time)
+                              f.write(f'- **Duration:** {test_time_float:.2f}s\n')
+                          except (ValueError, TypeError):
+                              f.write(f'- **Duration:** {test_time}\n')
 
                           if failure is not None:
                               message = failure.attrib.get('message', 'No message')
