@@ -5,16 +5,27 @@
 repos:
   # Ruff linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4
+    rev: v0.15.0
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
 
+  # Pylint for additional code quality checks (catches variable shadowing, etc.)
+  - repo: https://github.com/pycqa/pylint
+    rev: v4.0.4
+    hooks:
+      - id: pylint
+        args:
+          - --disable=C0114,C0115,C0116,R0913,R0914  # Disable docstring and complexity warnings
+          - --fail-under=8.0  # Minimum score to pass
+          - --max-line-length=120
+        additional_dependencies: [anthropic, pytest, modal]
+
   # GitHub Actions workflow validation
   # Note: Reports style warnings but doesn't fail on them
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.4
+    rev: v1.7.10
     hooks:
       - id: actionlint
         name: Validate GitHub Actions workflows
@@ -23,20 +34,20 @@ repos:
         # Allow to pass even with style warnings (SC2129, SC2126)
         args: [-ignore, 'SC2129:.*', -ignore, 'SC2126:.*']
 
-  # Python type checking (optional, can be slow)
-  # - repo: local
-  #   hooks:
-  #     - id: mypy
-  #       name: mypy type checking
-  #       entry: mypy
-  #       language: system
-  #       types: [python]
-  #       args: [--ignore-missing-imports]
-  #       pass_filenames: false
+  # Python type checking (recommended, catches type-related bugs)
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.19.1
+    hooks:
+      - id: mypy
+        args: [--ignore-missing-imports, --no-error-summary]
+        additional_dependencies: [types-requests, types-PyYAML, anthropic]
+        files: ^scripts/
+        exclude: ^tests/
+        # Note: Can be slow on first run
 
   # Standard pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -51,8 +62,8 @@ repos:
 
   # Security checks
   - repo: https://github.com/pycqa/bandit
-    rev: 1.8.0
+    rev: 1.9.3
     hooks:
       - id: bandit
-        args: [-c, pyproject.toml]
+        args: [-c, pyproject.toml, -lll]  # Only report high severity
         additional_dependencies: ["bandit[toml]"]

@@ -5,11 +5,12 @@ Send flaky test results to Slack via webhook.
 import json
 import os
 import sys
+from typing import Any
 
 import requests
 
 
-def create_slack_message(result):
+def create_slack_message(result: dict[str, Any]) -> dict[str, Any]:
     """Create Slack message blocks."""
     total_runs = result.get("total_runs", 0)
     failures = result.get("failures", 0)
@@ -98,7 +99,7 @@ def create_slack_message(result):
     return message
 
 
-def main():
+def main() -> None:
     webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
 
     if not webhook_url:

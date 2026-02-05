@@ -12,7 +12,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 
 def run_actionlint(workflow_path: Optional[str] = None) -> tuple[int, str, str]:
@@ -41,7 +41,7 @@ def run_actionlint(workflow_path: Optional[str] = None) -> tuple[int, str, str]:
         sys.exit(1)
 
 
-def parse_actionlint_output(output: str) -> list[dict]:
+def parse_actionlint_output(output: str) -> list[dict[str, Any]]:
     """
     Parse actionlint output into structured errors.
 
@@ -87,7 +87,9 @@ def parse_actionlint_output(output: str) -> list[dict]:
     return errors
 
 
-def suggest_fixes_with_ai(errors: list[dict], workflow_content: str) -> Optional[str]:
+def suggest_fixes_with_ai(
+    errors: list[dict[str, Any]], workflow_content: str
+) -> Optional[str]:
     """
     Use Claude API to suggest fixes for workflow errors.
 
@@ -150,13 +152,13 @@ Focus on practical, working solutions."""
             messages=[{"role": "user", "content": prompt}],
         )
 
-        return message.content[0].text
+        return str(message.content[0].text)  # type: ignore[union-attr]
     except Exception as e:
         print(f"Error calling Claude API: {e}", file=sys.stderr)
         return None
 
 
-def format_error_report(errors: list[dict]) -> str:
+def format_error_report(errors: list[dict[str, Any]]) -> str:
     """
     Format errors into a readable report.
 
@@ -172,7 +174,7 @@ def format_error_report(errors: list[dict]) -> str:
     report = f"Found {len(errors)} error(s):\n\n"
 
     # Group by file
-    errors_by_file = {}
+    errors_by_file: dict[str, list[dict[str, Any]]] = {}
     for error in errors:
         file = error["file"]
         if file not in errors_by_file:

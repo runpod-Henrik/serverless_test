@@ -34,6 +34,11 @@ You need to add your RunPod credentials as GitHub secrets so the workflow can ac
    - Name: `SLACK_WEBHOOK_URL`
    - Value: `<your Slack webhook URL>`
 
+   **Secret 4 (Optional - for AI-powered workflow validation):**
+   - Name: `ANTHROPIC_API_KEY`
+   - Value: `<your Claude API key from console.anthropic.com>`
+   - Note: Enables AI-powered fix suggestions for workflow errors
+
 3. **Done!** The integration is now fully active.
 
 ### Option 2: Using GitHub CLI
@@ -49,6 +54,9 @@ gh secret set RUNPOD_ENDPOINT_ID --body "<your-endpoint-id>"
 
 # (Optional) Add Slack webhook
 gh secret set SLACK_WEBHOOK_URL --body "<your-slack-webhook-url>"
+
+# (Optional) Add Anthropic API key for AI workflow validation
+gh secret set ANTHROPIC_API_KEY --body "<your-anthropic-api-key>"
 ```
 
 ## How It Works
@@ -121,3 +129,4 @@ The integration uses these default settings (customizable in .flaky-detector.yml
 Secrets added:
 - ✓ RUNPOD_API_KEY (added 2026-02-04)
 - ✓ RUNPOD_ENDPOINT_ID (added 2026-02-04)
+- ✓ ANTHROPIC_API_KEY (optional - for AI workflow validation)

@@ -3,7 +3,7 @@ import random
 import time
 
 
-def test_order_processing_is_eventually_consistent():
+def test_order_processing_is_eventually_consistent() -> None:
     """
     This test simulates a classic real-world flake:
     - timing sensitivity

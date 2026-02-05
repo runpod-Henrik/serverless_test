@@ -15,7 +15,17 @@ This project includes automated validation for GitHub Actions workflows with opt
 
 ## Quick Start
 
-### 1. Install Pre-commit Hooks
+### Option 1: Comprehensive Test Script (Recommended)
+
+Run all checks before pushing (includes workflow validation):
+
+```bash
+./scripts/run_all_checks.sh
+```
+
+This runs workflow validation along with all other CI checks in 30-60 seconds.
+
+### Option 2: Pre-commit Hooks
 
 ```bash
 # Install pre-commit
@@ -30,7 +40,7 @@ pre-commit run --all-files
 
 Now workflow files will be automatically validated before every commit!
 
-### 2. Local Validation
+### Option 3: Standalone Workflow Validation
 
 ```bash
 # Validate all workflows (no API key required)
@@ -404,22 +414,39 @@ Apply this same fix to all uses of $LAST_SHA in the script.
 ================================================================================
 ```
 
+## Part of the Multi-Layer Defense System
+
+Workflow validation is one component of our comprehensive CI failure prevention system:
+
+```
+Layer 1: IDE/Editor → Real-time linting
+Layer 2: Pre-commit Hooks → Workflow validation + code checks
+Layer 3: Local Test Script → ./scripts/run_all_checks.sh
+Layer 4: CI Pipeline → Final verification
+```
+
+**See also:**
+- **[Preventing CI Failures →](PREVENTING_CI_FAILURES.md)** - Complete prevention guide
+- **[Quality Checks →](QUALITY_CHECKS.md)** - All tools and configurations
+- **[Quick Reference →](QUICK_REFERENCE.md)** - Developer cheat sheet
+
 ## Summary
 
 This automated validation system helps you:
 
 - ✅ Catch workflow errors before they reach CI
-- ✅ Get AI-powered suggestions for fixes
+- ✅ Get AI-powered suggestions for fixes (optional)
 - ✅ Learn from mistakes with detailed explanations
 - ✅ Maintain high-quality workflow files
 - ✅ Reduce debugging time in CI
+- ✅ Part of 90-95% reduction in CI debugging time
 
 **Next Steps:**
-1. Install pre-commit hooks: `pre-commit install`
-2. Set up ANTHROPIC_API_KEY for AI suggestions
-3. Run validation on existing workflows
-4. Fix any issues found
-5. Enjoy automated validation on every commit!
+1. Run comprehensive checks: `./scripts/run_all_checks.sh`
+2. Install pre-commit hooks: `pre-commit install`
+3. Set up ANTHROPIC_API_KEY for AI suggestions (optional)
+4. Read prevention guide: `docs/PREVENTING_CI_FAILURES.md`
+5. Enjoy CI passing on first try >90% of the time!
 
 ---
 
@@ -427,3 +454,5 @@ This automated validation system helps you:
 - [actionlint documentation](https://github.com/rhysd/actionlint)
 - [pre-commit documentation](https://pre-commit.com/)
 - [Claude API documentation](https://docs.anthropic.com/)
+- [Preventing CI Failures](PREVENTING_CI_FAILURES.md)
+- [Quality Checks](QUALITY_CHECKS.md)

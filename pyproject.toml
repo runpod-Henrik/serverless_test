@@ -18,8 +18,10 @@ dashboard = [
 dev = [
     "ruff>=0.8.4",
     "mypy>=1.14.0",
+    "pylint>=3.3.0",
     "pytest-cov>=6.0.0",
     "pre-commit>=4.0.0",
+    "bandit>=1.8.0",
 ]
 validation = [
     "anthropic>=0.40.0",  # For AI-powered fix suggestions
@@ -80,6 +82,12 @@ ignore_missing_imports = true
 module = "plotly.*"
 ignore_missing_imports = true
 
+# Allow untyped code in tests (fixtures, mocks, etc.)
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
@@ -119,3 +127,45 @@ exclude_lines = [
 
 [tool.coverage.html]
 directory = "htmlcov"
+
+[tool.pylint.main]
+ignore = [".git", "__pycache__", ".pytest_cache", ".venv", "venv"]
+jobs = 0  # Auto-detect CPU cores
+
+[tool.pylint."messages control"]
+# Focus on bugs and potential issues, disable style/documentation checks
+disable = [
+    "C0114",  # missing-module-docstring
+    "C0115",  # missing-class-docstring
+    "C0116",  # missing-function-docstring
+    "R0913",  # too-many-arguments
+    "R0914",  # too-many-locals
+    "R0912",  # too-many-branches
+    "R0915",  # too-many-statements
+    "W0212",  # protected-access (allow for tests)
+    "C0103",  # invalid-name (allow short variable names)
+]
+# Enable important checks that catch real bugs
+enable = [
+    "W0621",  # redefined-outer-name (variable shadowing!)
+    "W0622",  # redefined-builtin
+    "W0611",  # unused-import
+    "W0612",  # unused-variable
+    "E1101",  # no-member
+    "E1102",  # not-callable
+    "E0602",  # undefined-variable
+    "E0611",  # no-name-in-module
+]
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.design]
+min-public-methods = 0
+
+[tool.pylint.basic]
+good-names = ["i", "j", "k", "v", "ex", "Run", "_", "f", "e", "t", "x", "y", "z", "id", "df", "db", "ax", "fig"]
+
+[tool.bandit]
+exclude_dirs = [".venv", "venv", "tests"]
+skips = ["B101"]  # Skip assert_used (fine in test code)

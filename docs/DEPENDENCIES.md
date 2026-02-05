@@ -54,13 +54,28 @@ For a **production-ready serverless application**, stability and reproducibility
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `ruff` | 0.8.4+ | Linting and formatting |
+| `ruff` | 0.8.4+ | Fast linting and formatting |
+| `pylint` | 3.3.0+ | Deep code analysis (catches variable shadowing) |
 | `mypy` | 1.14.0+ | Static type checking |
+| `bandit` | 1.8.0+ | Security vulnerability scanning |
 | `pytest-cov` | 6.0.0+ | Pytest coverage plugin |
+| `pre-commit` | 4.0.0+ | Git hooks for automated checks |
 
 **Installation:** `pip install -e ".[dev]"` or `uv sync --extra dev`
 
 **When to install:** Only if you're contributing to the project or running quality checks
+
+**Note:** These tools are part of the multi-layer defense system that prevents CI failures. See [PREVENTING_CI_FAILURES.md](PREVENTING_CI_FAILURES.md) for details.
+
+### Optional Dependencies: Workflow Validation
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `anthropic` | 0.40.0+ | AI-powered workflow fix suggestions (optional) |
+
+**Installation:** `pip install -e ".[validation]"` or `uv sync --extra validation`
+
+**When to install:** Only if you want AI-powered suggestions for workflow validation (requires ANTHROPIC_API_KEY)
 
 ### Legacy Dependencies (via requirements.txt)
 

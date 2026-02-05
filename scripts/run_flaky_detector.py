@@ -5,11 +5,12 @@ Script to run the flaky test detector on RunPod and save results.
 import json
 import os
 import sys
+from typing import Any
 
 import runpod
 
 
-def main():
+def main() -> None:
     # Get configuration from environment
     api_key = os.environ.get("RUNPOD_API_KEY")
     endpoint_id = os.environ.get("RUNPOD_ENDPOINT_ID")

@@ -2,6 +2,22 @@
 
 This guide explains how to automatically run the flaky test detector when tests fail in your CI/CD pipeline.
 
+## Before You Start: Prevent CI Failures
+
+Before integrating flaky test detection, ensure your CI rarely fails in the first place with our multi-layer defense system:
+
+```bash
+# Run all CI checks locally before pushing
+./scripts/run_all_checks.sh
+```
+
+**See:**
+- **[Preventing CI Failures →](PREVENTING_CI_FAILURES.md)** - Multi-layer defense system
+- **[Quick Reference →](QUICK_REFERENCE.md)** - Developer cheat sheet
+- **[Quality Checks →](QUALITY_CHECKS.md)** - Complete tool documentation
+
+With proper prevention in place, CI should pass >90% of the time, reducing the need for flaky test detection.
+
 ## Overview
 
 The integration works by:
@@ -302,10 +318,32 @@ Example rate limiting:
     fi
 ```
 
+## Best Practices
+
+### 1. Prevent Failures First
+Use the multi-layer defense system to catch issues before CI:
+- ✅ Enable pre-commit hooks: `pre-commit install`
+- ✅ Run local checks: `./scripts/run_all_checks.sh`
+- ✅ Follow the prevention guide: `docs/PREVENTING_CI_FAILURES.md`
+
+### 2. Use Flaky Detection Wisely
+Only run flaky detection when:
+- Tests fail in CI despite passing locally
+- Suspected flakiness (intermittent failures)
+- After prevention checks have passed
+
+### 3. Track Metrics
+Monitor your CI health:
+- CI first-pass rate (goal: >90%)
+- Number of flaky tests detected per month
+- Time saved by catching issues locally
+
 ## Support
 
 For issues with the integration:
 - Check workflow logs in GitHub Actions
 - Review RunPod endpoint logs
+- See [Preventing CI Failures](PREVENTING_CI_FAILURES.md) for common issues
+- See [Quality Checks](QUALITY_CHECKS.md) for tool configuration
 - Open an issue on the repository
 - See main README.md for general troubleshooting

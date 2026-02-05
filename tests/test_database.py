@@ -26,7 +26,7 @@ def temp_db():
 class TestResultsDatabase:
     """Test database operations."""
 
-    def test_database_initialization(self, temp_db):
+    def test_database_initialization(self, temp_db) -> None:
         """Test database tables are created."""
         cursor = temp_db.conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
@@ -34,7 +34,7 @@ class TestResultsDatabase:
         assert "test_runs" in tables
         assert "test_results" in tables
 
-    def test_save_and_retrieve_run(self, temp_db):
+    def test_save_and_retrieve_run(self, temp_db) -> None:
         """Test saving and retrieving a test run."""
         results = [
             {"attempt": 0, "exit_code": 0, "passed": True, "stdout": "ok", "stderr": ""},
@@ -76,7 +76,7 @@ class TestResultsDatabase:
         assert run["pr_number"] == 123
         assert len(run["results"]) == 2
 
-    def test_get_recent_runs(self, temp_db):
+    def test_get_recent_runs(self, temp_db) -> None:
         """Test retrieving recent runs."""
         # Add multiple runs
         for i in range(5):
@@ -97,7 +97,7 @@ class TestResultsDatabase:
         assert recent[0]["test_command"] == "pytest test_4.py"
         assert recent[1]["test_command"] == "pytest test_3.py"
 
-    def test_get_runs_by_repository(self, temp_db):
+    def test_get_runs_by_repository(self, temp_db) -> None:
         """Test filtering runs by repository."""
         temp_db.save_run(
             repository="repo1",
@@ -124,7 +124,7 @@ class TestResultsDatabase:
         assert len(repo1_runs) == 1
         assert repo1_runs[0]["repository"] == "repo1"
 
-    def test_get_flakiness_trend(self, temp_db):
+    def test_get_flakiness_trend(self, temp_db) -> None:
         """Test flakiness trend calculation."""
         # Add runs over multiple days (simulated with manual timestamps)
         cursor = temp_db.conn.cursor()
@@ -162,7 +162,7 @@ class TestResultsDatabase:
         assert "avg_repro_rate" in trend[0]
         assert "num_runs" in trend[0]
 
-    def test_get_most_flaky_commands(self, temp_db):
+    def test_get_most_flaky_commands(self, temp_db) -> None:
         """Test getting most flaky test commands."""
         # Add runs with different commands and flakiness levels
         commands = [
@@ -189,7 +189,7 @@ class TestResultsDatabase:
         assert flaky[0]["test_command"] == "pytest test_b.py"
         assert flaky[0]["avg_repro_rate"] == 0.8
 
-    def test_get_statistics(self, temp_db):
+    def test_get_statistics(self, temp_db) -> None:
         """Test getting overall statistics."""
         # Add runs with different severities
         severities = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"]
@@ -213,7 +213,7 @@ class TestResultsDatabase:
         assert stats["low_runs"] == 1
         assert stats["none_runs"] == 1
 
-    def test_get_statistics_by_repository(self, temp_db):
+    def test_get_statistics_by_repository(self, temp_db) -> None:
         """Test statistics filtered by repository."""
         temp_db.save_run(
             repository="repo1",
@@ -240,7 +240,7 @@ class TestResultsDatabase:
         assert stats["total_runs"] == 1
         assert stats["high_runs"] == 1
 
-    def test_context_manager(self):
+    def test_context_manager(self) -> None:
         """Test database can be used as context manager."""
         fd, path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
@@ -261,7 +261,7 @@ class TestResultsDatabase:
         finally:
             os.unlink(path)
 
-    def test_get_nonexistent_run(self, temp_db):
+    def test_get_nonexistent_run(self, temp_db) -> None:
         """Test retrieving non-existent run returns None."""
         run = temp_db.get_run_details(99999)
         assert run is None

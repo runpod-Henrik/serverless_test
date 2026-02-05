@@ -5,11 +5,12 @@ Post flaky test results as a comment on the GitHub PR.
 import json
 import os
 import sys
+from typing import Any
 
 import requests
 
 
-def format_result_table(results):
+def format_result_table(results: list[dict[str, Any]]) -> str:
     """Format test results as a markdown table."""
     if not results:
         return "No detailed results available."
@@ -37,7 +38,7 @@ def format_result_table(results):
     return table
 
 
-def create_comment_body(result):
+def create_comment_body(result: dict[str, Any]) -> str:
     """Create the PR comment body."""
     total_runs = result.get("total_runs", 0)
     failures = result.get("failures", 0)
@@ -98,7 +99,7 @@ A flaky test is a test that sometimes passes and sometimes fails without any cod
     return comment
 
 
-def main():
+def main() -> None:
     github_token = os.environ.get("GITHUB_TOKEN")
     pr_number = os.environ.get("PR_NUMBER")
     repository = os.environ.get("GITHUB_REPOSITORY")

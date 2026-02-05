@@ -1,0 +1,42 @@
+# Pylint configuration for catching common issues before CI
+[MAIN]
+ignore=.git,__pycache__,.pytest_cache,.venv,venv
+jobs=0  # Auto-detect CPU cores
+
+[MESSAGES CONTROL]
+# Disable documentation and complexity warnings, focus on bugs
+disable=
+    C0114,  # missing-module-docstring
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+    R0913,  # too-many-arguments
+    R0914,  # too-many-locals
+    R0912,  # too-many-branches
+    R0915,  # too-many-statements
+    W0212,  # protected-access (allow for tests)
+    C0103,  # invalid-name (allow short variable names)
+
+# Enable important checks that catch bugs
+enable=
+    W0621,  # redefined-outer-name (variable shadowing!)
+    W0622,  # redefined-builtin
+    W0611,  # unused-import
+    W0612,  # unused-variable
+    E1101,  # no-member
+    E1102,  # not-callable
+    E0602,  # undefined-variable
+    E0611,  # no-name-in-module
+
+[FORMAT]
+max-line-length=120
+indent-string='    '
+
+[DESIGN]
+min-public-methods=0  # Allow utility classes
+
+[BASIC]
+good-names=i,j,k,v,ex,Run,_,f,e,t,x,y,z,id,df,db,ax,fig
+
+[REPORTS]
+output-format=colorized
+score=yes
