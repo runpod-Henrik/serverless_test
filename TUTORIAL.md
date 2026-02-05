@@ -783,6 +783,142 @@ pytest tests/ --cov=worker --cov-report=term-missing
 
 These tools are already integrated in your GitHub Actions workflow from Step 8.
 
+## Step 13 — Advanced Features: Change Detection and Slack User Tagging
+
+Now that you have a working flaky test detector, let's add advanced features to identify what code changes caused the failures and notify the right people.
+
+### Change Detection
+
+The workflows now automatically compare the current code with the last successful run to identify potential breaking changes.
+
+**What it tracks:**
+- Files changed since last successful run
+- Commit information (hash, author, time, message)
+- Statistics on Python files, test files, and workflows changed
+- Detailed diff statistics
+- Warnings for core module modifications
+
+**How it works:**
+
+1. **Finds last successful run:**
+   ```yaml
+   - name: Get last successful run
+     uses: actions/github-script@v7
+     with:
+       script: |
+         const runs = await github.rest.actions.listWorkflowRuns({
+           owner: context.repo.owner,
+           repo: context.repo.repo,
+           workflow_id: 'ci.yml',
+           branch: context.ref.replace('refs/heads/', ''),
+           status: 'success',
+           per_page: 1
+         });
+   ```
+
+2. **Analyzes changes:**
+   ```bash
+   git diff --name-only $LAST_SHA HEAD > changed_files.txt
+   git log --format="%h|%an|%ar|%s" $LAST_SHA..HEAD > commits_detailed.txt
+   ```
+
+3. **Displays in summary:**
+   - Commit table with authors and messages
+   - File change statistics
+   - Warnings for modified core modules
+
+**Example output:**
+```markdown
+### 📝 Changes Since Last Successful Run
+
+**Commits:** 3 new commit(s)
+**Comparing:** abc1234...def5678
+
+**Recent Commits:**
+| Commit  | Author    | Message                    |
+|---------|-----------|----------------------------|
+| a1b2c3d | John Doe  | Fix race condition         |
+| e4f5g6h | Jane S.   | Update worker validation   |
+
+**Potential Breaking Changes:**
+- ⚠️ Core modules modified: `worker.py`, `config.py`
+- 🧪 Test files modified: 1 file(s)
+```
+
+### Slack User Tagging
+
+Automatically notify commit authors in Slack when their changes cause test failures.
+
+**Setup:**
+
+1. **Create Slack webhook:**
+   - Go to Slack: Workspace Settings → Apps → Incoming Webhooks
+   - Click "Add to Slack" and select channel
+   - Copy the webhook URL
+
+2. **Find Slack user IDs:**
+   - Open Slack → Click user's profile
+   - Click "⋯ More" → "Copy member ID"
+   - Example: `U01234ABCD`
+
+3. **Configure GitHub secrets:**
+   ```bash
+   # Add Slack webhook
+   gh secret set SLACK_WEBHOOK_URL --body "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+
+   # Add GitHub-to-Slack user mapping
+   gh secret set GITHUB_SLACK_MAP --body '{
+     "github-username": "U01234ABCD",
+     "another-user": "U56789EFGH"
+   }'
+   ```
+
+**Example mapping:**
+```json
+{
+  "octocat": "U01234ABCD",
+  "torvalds": "U56789EFGH",
+  "gvanrossum": "U01112IJKL"
+}
+```
+
+**What you get:**
+
+Slack notifications with:
+- Severity indicators (🔴 CRITICAL / 🟠 HIGH / 🟡 MEDIUM / 🟢 LOW)
+- Test statistics (runs, failures, rate)
+- Recent commits with author mentions
+- Direct @ mentions for commit authors
+- Action button to GitHub Actions
+
+**Example Slack message:**
+```
+🟠 HIGH Flaky Test Detected
+
+Repository: your-org/your-repo
+Failure Rate: 75.0%
+Total Runs: 100
+Failed Runs: 75
+
+Recent Commits (3):
+• a1b2c3d Fix race condition - @john-slack
+• e4f5g6h Update tests - @jane-slack
+• i7j8k9l Refactor worker - @bob-slack
+
+FYI: @john-slack, @jane-slack, @bob-slack
+
+[View in GitHub Actions] (button)
+```
+
+**Benefits:**
+- ✅ Commit authors get notified immediately
+- ✅ No need to check GitHub manually
+- ✅ Direct context about what changed
+- ✅ One-click access to full details
+- ✅ Works even without user mapping (shows GitHub usernames)
+
+**Optional:** If you don't configure `GITHUB_SLACK_MAP`, the notification will still work but show GitHub usernames instead of @ mentions.
+
 ## Troubleshooting
 
 ### Issue: ImportError in GitHub Actions

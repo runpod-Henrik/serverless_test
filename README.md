@@ -288,8 +288,17 @@ Ensures code quality with automated checks:
 - ✅ Coverage reporting (90% minimum required)
 - ✅ Coverage reports uploaded as artifacts
 - ✅ PR comments with coverage status
+- ✅ Change detection with commit tracking
+- ✅ Detailed summary with file changes and commit history
 
 **Workflow:** `.github/workflows/ci.yml`
+
+**Change Detection Features:**
+- Automatically identifies code changes since last successful run
+- Shows commit history with authors and messages
+- Lists changed files by category (Python files, test files, workflow files)
+- Highlights potentially breaking changes when tests fail
+- Provides diff statistics in expandable sections
 
 ### 2. Flaky Test Detector (Runs on CI Test Failures)
 
