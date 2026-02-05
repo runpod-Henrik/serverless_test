@@ -64,7 +64,7 @@ jobs:
           CURRENT_SHA="${{ github.event.workflow_run.head_sha }}"
 
           # Verify the commit exists
-          if ! git cat-file -e $LAST_SHA^{commit} 2>/dev/null; then
+          if ! git cat-file -e "$LAST_SHA^{commit}" 2>/dev/null; then
             echo "Warning: Last successful commit $LAST_SHA not found in history"
             echo "total_changed=0" >> $GITHUB_OUTPUT
             echo "python_changed=0" >> $GITHUB_OUTPUT
@@ -73,18 +73,18 @@ jobs:
           fi
 
           # Get changed files
-          git diff --name-only $LAST_SHA $CURRENT_SHA > changed_files.txt
+          git diff --name-only "$LAST_SHA" "$CURRENT_SHA" > changed_files.txt
 
           # Get statistics
           TOTAL_CHANGED=$(wc -l < changed_files.txt | tr -d ' ')
           PYTHON_CHANGED=$(grep "\.py$" changed_files.txt | wc -l | tr -d ' ')
 
           # Get detailed diff
-          git diff --stat $LAST_SHA $CURRENT_SHA > diff_stats.txt
+          git diff --stat "$LAST_SHA" "$CURRENT_SHA" > diff_stats.txt
 
           # Get commit information
-          git log --format="%h|%an|%ar|%s" $LAST_SHA..$CURRENT_SHA > commits_detailed.txt
-          COMMIT_COUNT=$(git rev-list --count $LAST_SHA..$CURRENT_SHA)
+          git log --format="%h|%an|%ar|%s" "$LAST_SHA..$CURRENT_SHA" > commits_detailed.txt
+          COMMIT_COUNT=$(git rev-list --count "$LAST_SHA..$CURRENT_SHA")
 
           echo "total_changed=$TOTAL_CHANGED" >> $GITHUB_OUTPUT
           echo "python_changed=$PYTHON_CHANGED" >> $GITHUB_OUTPUT
@@ -129,6 +129,18 @@ jobs:
           })
 
           result = job.output()
+
+          # Check if job completed successfully
+          if result is None:
+              print("Error: Job did not return a result")
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+                  f.write('## ❌ Flaky Test Detection Failed\n\n')
+                  f.write('The flaky test detector job did not complete successfully.\n')
+                  f.write('This may be due to:\n')
+                  f.write('- RunPod endpoint unavailable\n')
+                  f.write('- Job timeout\n')
+                  f.write('- Invalid test command\n')
+              exit(1)
 
           # Save results to file
           with open('flaky_test_results.json', 'w') as f:
