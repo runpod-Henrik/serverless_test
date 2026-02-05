@@ -485,6 +485,14 @@ jobs:
 
               # Highlight negative coverage delta
               if coverage_delta is not None and coverage_delta < 0:
+                  # Ensure types are correct (debugging)
+                  print(f"DEBUG: coverage_delta type={type(coverage_delta)}, value={coverage_delta}")
+                  print(f"DEBUG: previous_coverage type={type(previous_coverage)}, value={previous_coverage}")
+                  print(f"DEBUG: coverage type={type(coverage)}, value={coverage}")
+                  # Force conversion to float
+                  coverage_delta = float(coverage_delta) if not isinstance(coverage_delta, float) else coverage_delta
+                  previous_coverage = float(previous_coverage) if not isinstance(previous_coverage, float) else previous_coverage
+                  coverage = float(coverage) if not isinstance(coverage, float) else coverage
                   f.write(f'\n⚠️ **Coverage decreased by {abs(coverage_delta):.1f}%** ')
                   f.write(f'(was {previous_coverage:.1f}%, now {coverage:.1f}%)\n')
           EOF
