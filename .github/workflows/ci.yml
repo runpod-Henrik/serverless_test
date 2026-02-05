@@ -33,8 +33,11 @@ jobs:
         id: ruff-lint
         continue-on-error: true
         run: |
+          set +e
           ruff check . --output-format=github > ruff-lint.txt 2>&1
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          RESULT=$?
+          set -e
+          echo "exit_code=$RESULT" >> $GITHUB_OUTPUT
 
       - name: Run ruff formatter check
         id: ruff-format
@@ -52,8 +55,11 @@ jobs:
         id: mypy
         continue-on-error: true
         run: |
+          set +e
           mypy worker.py config.py database.py > mypy.txt 2>&1
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          RESULT=$?
+          set -e
+          echo "exit_code=$RESULT" >> $GITHUB_OUTPUT
 
       - name: Generate lint and type check summary
         if: always()
@@ -89,7 +95,7 @@ jobs:
           EOF
 
           # Add error details if any check failed
-          if [ "${{ steps.ruff-lint.outputs.exit_code }}" != "0" ]; then
+          if [ "${{ steps.ruff-lint.outputs.exit_code }}" != "0" ] && [ -f ruff-lint.txt ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### 🔍 Linting Errors" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
@@ -97,7 +103,7 @@ jobs:
             echo '```' >> $GITHUB_STEP_SUMMARY
           fi
 
-          if [ "${{ steps.ruff-format.outputs.exit_code }}" != "0" ]; then
+          if [ "${{ steps.ruff-format.outputs.exit_code }}" != "0" ] && [ -f ruff-format.txt ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### 📝 Formatting Errors" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
@@ -105,7 +111,7 @@ jobs:
             echo '```' >> $GITHUB_STEP_SUMMARY
           fi
 
-          if [ "${{ steps.mypy.outputs.exit_code }}" != "0" ]; then
+          if [ "${{ steps.mypy.outputs.exit_code }}" != "0" ] && [ -f mypy.txt ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### 🔒 Type Checking Errors" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
@@ -166,26 +172,29 @@ jobs:
             if (runs.data.workflow_runs.length > 0) {
               const lastSuccess = runs.data.workflow_runs[0];
               core.setOutput('sha', lastSuccess.head_sha);
+              core.setOutput('run_id', lastSuccess.id);
               core.setOutput('run_number', lastSuccess.run_number);
               core.setOutput('created_at', lastSuccess.created_at);
             } else {
               core.setOutput('sha', '');
+              core.setOutput('run_id', '');
               core.setOutput('run_number', '');
               core.setOutput('created_at', '');
             }
 
       - name: Get previous coverage
         id: prev-coverage
-        if: always() && steps.last-success.outputs.run_number != ''
+        if: always() && steps.last-success.outputs.run_id != ''
         continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
             try {
+              const runId = parseInt('${{ steps.last-success.outputs.run_id }}', 10);
               const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                run_id: ${{ steps.last-success.outputs.run_number }}
+                run_id: runId
               });
 
               const coverageArtifact = artifacts.data.artifacts.find(
