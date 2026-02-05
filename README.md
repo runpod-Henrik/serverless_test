@@ -606,6 +606,8 @@ After deployment, note your endpoint ID from the RunPod dashboard. You'll use th
 
 ## Usage
 
+**📋 Configuration Guide:** See [TEST_INPUT_FILES.md](TEST_INPUT_FILES.md) for detailed information about configuring test runs, including local path support and best practices.
+
 ### Running a Job
 
 Using the RunPod Python SDK:

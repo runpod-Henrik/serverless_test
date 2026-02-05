@@ -2,7 +2,6 @@ import json
 import os
 import random
 import shlex
-import shutil
 import subprocess
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -167,9 +166,12 @@ def handler(job: dict[str, Any]) -> dict[str, Any]:
     if parallelism < 1 or parallelism > 50:
         raise ValueError("Parallelism must be between 1 and 50")
 
-    # Validate repo URL (basic check for https:// or git@)
-    if not (repo.startswith("https://") or repo.startswith("git@")):
-        raise ValueError(f"Invalid repository URL: {repo}")
+    # Check if repo is a local path or a URL
+    is_local_path = os.path.exists(repo) and os.path.isdir(repo)
+
+    # Validate repo URL if not a local path (basic check for https:// or git@)
+    if not is_local_path and not (repo.startswith("https://") or repo.startswith("git@")):
+        raise ValueError(f"Invalid repository URL or path: {repo}")
 
     workdir = tempfile.mkdtemp()
     results = []
@@ -177,21 +179,39 @@ def handler(job: dict[str, Any]) -> dict[str, Any]:
     detected_framework: FrameworkType = "unknown"
 
     try:
-        # Clone repo - using list arguments to prevent command injection
-        try:
-            print(f"Cloning repository: {repo}")
-            subprocess.run(
-                ["git", "clone", repo, workdir],
-                check=True,
-                capture_output=True,
-                text=True,
-                timeout=300,
-            )
-            print("✓ Repository cloned successfully")
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"Failed to clone repository: {e.stderr}") from e
-        except subprocess.TimeoutExpired as e:
-            raise RuntimeError("Repository clone timed out after 5 minutes") from e
+        if is_local_path:
+            # Copy local directory instead of cloning
+            import shutil
+
+            print(f"Copying local repository: {repo}")
+            try:
+                # Copy directory contents to workdir
+                for item in os.listdir(repo):
+                    src = os.path.join(repo, item)
+                    dst = os.path.join(workdir, item)
+                    if os.path.isdir(src):
+                        shutil.copytree(src, dst, symlinks=True)
+                    else:
+                        shutil.copy2(src, dst)
+                print("✓ Repository copied successfully")
+            except (OSError, shutil.Error) as e:
+                raise RuntimeError(f"Failed to copy local repository: {e}") from e
+        else:
+            # Clone repo - using list arguments to prevent command injection
+            try:
+                print(f"Cloning repository: {repo}")
+                subprocess.run(
+                    ["git", "clone", repo, workdir],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=300,
+                )
+                print("✓ Repository cloned successfully")
+            except subprocess.CalledProcessError as e:
+                raise RuntimeError(f"Failed to clone repository: {e.stderr}") from e
+            except subprocess.TimeoutExpired as e:
+                raise RuntimeError("Repository clone timed out after 5 minutes") from e
 
         os.chdir(workdir)
 
