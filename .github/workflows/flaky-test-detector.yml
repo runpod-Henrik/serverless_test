@@ -66,9 +66,9 @@ jobs:
           # Verify the commit exists
           if ! git cat-file -e "$LAST_SHA^{commit}" 2>/dev/null; then
             echo "Warning: Last successful commit $LAST_SHA not found in history"
-            echo "total_changed=0" >> $GITHUB_OUTPUT
-            echo "python_changed=0" >> $GITHUB_OUTPUT
-            echo "commit_count=0" >> $GITHUB_OUTPUT
+            echo "total_changed=0" >> "$GITHUB_OUTPUT"
+            echo "python_changed=0" >> "$GITHUB_OUTPUT"
+            echo "commit_count=0" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -86,21 +86,21 @@ jobs:
           git log --format="%h|%an|%ar|%s" "$LAST_SHA..$CURRENT_SHA" > commits_detailed.txt
           COMMIT_COUNT=$(git rev-list --count "$LAST_SHA..$CURRENT_SHA")
 
-          echo "total_changed=$TOTAL_CHANGED" >> $GITHUB_OUTPUT
-          echo "python_changed=$PYTHON_CHANGED" >> $GITHUB_OUTPUT
-          echo "last_success_sha=$LAST_SHA" >> $GITHUB_OUTPUT
-          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          echo "total_changed=$TOTAL_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "python_changed=$PYTHON_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "last_success_sha=$LAST_SHA" >> "$GITHUB_OUTPUT"
+          echo "commit_count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
 
       - name: Extract failed test information
         id: extract-tests
         run: |
           # Get the workflow run logs and extract failed tests
           # This is a simplified version - adjust based on your test framework
-          echo "failed_tests=pytest tests/" >> $GITHUB_OUTPUT
+          echo "failed_tests=pytest tests/" >> "$GITHUB_OUTPUT"
 
           # Extract PR number safely (handles direct pushes to main)
           PR_NUMBER="${{ github.event.workflow_run.pull_requests[0].number || '' }}"
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Run flaky test detector
         id: flaky-detector

@@ -37,7 +37,7 @@ jobs:
           ruff check . --output-format=github > ruff-lint.txt 2>&1
           RESULT=$?
           set -e
-          echo "exit_code=$RESULT" >> $GITHUB_OUTPUT
+          echo "exit_code=$RESULT" >> "$GITHUB_OUTPUT"
 
       - name: Run ruff formatter check
         id: ruff-format
@@ -45,8 +45,8 @@ jobs:
         run: |
           ruff format --check . > ruff-format.txt 2>&1
           RESULT=$?
-          echo "exit_code=$RESULT" >> $GITHUB_OUTPUT
-          if [ $RESULT -ne 0 ]; then
+          echo "exit_code=$RESULT" >> "$GITHUB_OUTPUT"
+          if [ "$RESULT" -ne 0 ]; then
             echo "## Formatting Errors" >> ruff-format.txt
             ruff format --check . --diff >> ruff-format.txt 2>&1 || true
           fi
@@ -59,7 +59,7 @@ jobs:
           mypy worker.py config.py database.py > mypy.txt 2>&1
           RESULT=$?
           set -e
-          echo "exit_code=$RESULT" >> $GITHUB_OUTPUT
+          echo "exit_code=$RESULT" >> "$GITHUB_OUTPUT"
 
       - name: Generate lint and type check summary
         if: always()
@@ -84,7 +84,7 @@ jobs:
           fi
 
           # Generate summary
-          cat >> $GITHUB_STEP_SUMMARY << EOF
+          cat >> "$GITHUB_STEP_SUMMARY" << EOF
           ## Code Quality Summary
 
           | Check | Status |
@@ -96,35 +96,35 @@ jobs:
 
           # Add error details if any check failed
           if [ "${{ steps.ruff-lint.outputs.exit_code }}" != "0" ] && [ -f ruff-lint.txt ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### 🔍 Linting Errors" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat ruff-lint.txt >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### 🔍 Linting Errors" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            cat ruff-lint.txt >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
           fi
 
           if [ "${{ steps.ruff-format.outputs.exit_code }}" != "0" ] && [ -f ruff-format.txt ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### 📝 Formatting Errors" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat ruff-format.txt >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### 📝 Formatting Errors" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            cat ruff-format.txt >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
           fi
 
           if [ "${{ steps.mypy.outputs.exit_code }}" != "0" ] && [ -f mypy.txt ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### 🔒 Type Checking Errors" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat mypy.txt >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### 🔒 Type Checking Errors" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            cat mypy.txt >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
           fi
 
           # All checks passed message
           if [ "${{ steps.ruff-lint.outputs.exit_code }}" = "0" ] && \
              [ "${{ steps.ruff-format.outputs.exit_code }}" = "0" ] && \
              [ "${{ steps.mypy.outputs.exit_code }}" = "0" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "All code quality checks completed successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "All code quality checks completed successfully!" >> "$GITHUB_STEP_SUMMARY"
           fi
 
           # Fail the workflow if any check failed
@@ -263,10 +263,10 @@ jobs:
           # Verify the commit exists
           if ! git cat-file -e "$LAST_SHA^{commit}" 2>/dev/null; then
             echo "Warning: Last successful commit $LAST_SHA not found in history"
-            echo "total_changed=0" >> $GITHUB_OUTPUT
-            echo "python_changed=0" >> $GITHUB_OUTPUT
-            echo "workflow_changed=0" >> $GITHUB_OUTPUT
-            echo "commit_count=0" >> $GITHUB_OUTPUT
+            echo "total_changed=0" >> "$GITHUB_OUTPUT"
+            echo "python_changed=0" >> "$GITHUB_OUTPUT"
+            echo "workflow_changed=0" >> "$GITHUB_OUTPUT"
+            echo "commit_count=0" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -286,11 +286,11 @@ jobs:
           git log --format="%h|%an|%ae|%ar|%s" "$LAST_SHA..HEAD" > commits_detailed.txt
           COMMIT_COUNT=$(git rev-list --count "$LAST_SHA..HEAD")
 
-          echo "total_changed=$TOTAL_CHANGED" >> $GITHUB_OUTPUT
-          echo "python_changed=$PYTHON_CHANGED" >> $GITHUB_OUTPUT
-          echo "workflow_changed=$WORKFLOW_CHANGED" >> $GITHUB_OUTPUT
-          echo "last_success_sha=$LAST_SHA" >> $GITHUB_OUTPUT
-          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          echo "total_changed=$TOTAL_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "python_changed=$PYTHON_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "workflow_changed=$WORKFLOW_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "last_success_sha=$LAST_SHA" >> "$GITHUB_OUTPUT"
+          echo "commit_count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
 
       - name: Generate test summary
         if: always()

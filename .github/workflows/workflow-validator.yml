@@ -43,7 +43,7 @@ jobs:
           actionlint -color -verbose > actionlint-output.txt 2>&1
           RESULT=$?
           set -e
-          echo "exit_code=$RESULT" >> $GITHUB_OUTPUT
+          echo "exit_code=$RESULT" >> "$GITHUB_OUTPUT"
 
           # Show output
           if [ -f actionlint-output.txt ]; then
@@ -146,7 +146,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.actionlint.outputs.exit_code }}" = "0" ]; then
-            cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+            cat >> "$GITHUB_STEP_SUMMARY" << 'EOF'
           ## ✅ Workflow Validation Passed
 
           All GitHub Actions workflows are valid!
@@ -159,7 +159,7 @@ jobs:
           - Job dependency validation
           EOF
           else
-            cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+            cat >> "$GITHUB_STEP_SUMMARY" << 'EOF'
           ## ❌ Workflow Validation Failed
 
           actionlint found issues in the workflow files.
@@ -181,11 +181,11 @@ jobs:
           EOF
 
             if [ -f actionlint-output.txt ]; then
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "### Errors" >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              cat actionlint-output.txt >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "### Errors" >> "$GITHUB_STEP_SUMMARY"
+              echo '```' >> "$GITHUB_STEP_SUMMARY"
+              cat actionlint-output.txt >> "$GITHUB_STEP_SUMMARY"
+              echo '```' >> "$GITHUB_STEP_SUMMARY"
             fi
           fi
 
