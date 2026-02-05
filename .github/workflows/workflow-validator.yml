@@ -23,6 +23,13 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Download and install actionlint
+        run: |
+          # Download latest actionlint binary
+          curl -sSL https://github.com/rhysd/actionlint/releases/latest/download/actionlint_linux_amd64.tar.gz | tar xz
+          sudo mv actionlint /usr/local/bin/
+          actionlint --version
+
       - name: Install Python dependencies for AI suggestions
         if: github.event_name == 'pull_request'
         run: |
@@ -33,13 +40,15 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:latest -color -verbose > actionlint-output.txt 2>&1
+          actionlint -color -verbose > actionlint-output.txt 2>&1
           RESULT=$?
           set -e
           echo "exit_code=$RESULT" >> $GITHUB_OUTPUT
 
           # Show output
-          cat actionlint-output.txt
+          if [ -f actionlint-output.txt ]; then
+            cat actionlint-output.txt
+          fi
 
       - name: Generate AI fix suggestions
         id: ai-suggestions
