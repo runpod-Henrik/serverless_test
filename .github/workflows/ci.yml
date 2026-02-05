@@ -429,13 +429,22 @@ jobs:
               coverage_delta = None
               coverage_delta_str = ""
               if previous_coverage is not None and previous_coverage > 0:
-                  coverage_delta = coverage - previous_coverage
+                  coverage_delta = float(coverage) - float(previous_coverage)
                   if coverage_delta > 0:
                       coverage_delta_str = f" (🟢 +{coverage_delta:.1f}%)"
                   elif coverage_delta < 0:
                       coverage_delta_str = f" (🔴 {coverage_delta:.1f}%)"
                   else:
                       coverage_delta_str = " (➡️ no change)"
+
+              # Force all numeric values to correct types before displaying
+              tests = int(tests)
+              passed = int(passed)
+              failures = int(failures)
+              errors = int(errors)
+              skipped = int(skipped)
+              time = float(time)
+              coverage = float(coverage)
 
               # Statistics table
               f.write('| Metric | Value |\n')
