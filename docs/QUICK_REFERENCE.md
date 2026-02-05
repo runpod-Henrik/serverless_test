@@ -93,15 +93,37 @@ except ValueError:
 
 ## When CI Fails
 
-1. Check the CI logs
-2. Reproduce locally: `./scripts/run_all_checks.sh`
-3. Fix the issue
-4. Verify locally again
-5. Push
+### Quick Workflow
+```bash
+# 1. Check what failed
+gh run view --log-failed
+
+# 2. Is it flaky or a real bug?
+# Edit test_input.json with failing test
+python3 local_test.py
+
+# 3. Analyze the results
+cat flaky_test_results.json
+
+# 4. Fix and verify
+./scripts/run_all_checks.sh
+git commit && git push
+```
+
+### Detailed Workflow
+1. Check the CI logs: `gh run view --log-failed`
+2. Run flaky detector to check reproducibility
+3. Use AI to analyze root cause
+4. Fix the issue
+5. Verify locally: `./scripts/run_all_checks.sh`
+6. Push and verify CI passes
+
+**See:** [Debugging Test Failures Guide](DEBUGGING_TEST_FAILURES.md)
 
 ## Tool Documentation
 
 - **Preventing Failures:** `docs/PREVENTING_CI_FAILURES.md`
+- **Debugging Test Failures:** `docs/DEBUGGING_TEST_FAILURES.md`
 - **Workflow Validation:** `docs/AI_WORKFLOW_VALIDATION.md`
 - **Improvements Summary:** `docs/IMPROVEMENTS_SUMMARY.md`
 

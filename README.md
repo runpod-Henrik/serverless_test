@@ -35,6 +35,7 @@ python scripts/validate_flaky_detector.py
 
 **Documentation:**
 - **[Preventing CI Failures →](docs/PREVENTING_CI_FAILURES.md)** - Complete guide with examples
+- **[Debugging Test Failures →](docs/DEBUGGING_TEST_FAILURES.md)** - AI-assisted root cause analysis workflow
 - **[Quick Reference →](docs/QUICK_REFERENCE.md)** - Developer cheat sheet
 - **[Quality Checks →](docs/QUALITY_CHECKS.md)** - All tools and configurations
 - **[Improvements Summary →](docs/IMPROVEMENTS_SUMMARY.md)** - Before/after & ROI analysis
