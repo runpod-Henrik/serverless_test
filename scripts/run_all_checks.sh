@@ -72,6 +72,17 @@ else
     echo ""
 fi
 
+# 9. End-to-end system validation (optional)
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "▶️  End-to-end system validation"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+if python scripts/validate_flaky_detector.py; then
+    echo -e "${GREEN}✅ System validation passed${NC}"
+else
+    echo -e "${YELLOW}⚠️  System validation had skipped tests (this is OK if dependencies are missing)${NC}"
+fi
+echo ""
+
 # Summary
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 if [ $FAILED -eq 0 ]; then

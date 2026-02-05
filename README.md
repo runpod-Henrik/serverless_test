@@ -15,6 +15,9 @@ A RunPod serverless function that detects flaky tests by running them multiple t
 ```bash
 # Run all CI checks locally in 30-60 seconds
 ./scripts/run_all_checks.sh
+
+# Or validate the entire system end-to-end
+python scripts/validate_flaky_detector.py
 ```
 
 **Results:**
@@ -22,12 +25,13 @@ A RunPod serverless function that detects flaky tests by running them multiple t
 - ✅ **CI passes on first try** >90% of the time
 - ✅ **Faster feedback** - 30-60s locally vs 3-5 min in CI
 - ✅ **Prevents common bugs** - Variable shadowing, type errors, shell quoting issues
+- ✅ **System validation** - End-to-end testing of the entire flaky detector
 
 **Four-layer defense:**
 1. **IDE/Editor** - Real-time linting
 2. **Pre-commit Hooks** - Automatic checks on commit
 3. **Local Test Script** - Comprehensive verification before push
-4. **CI Pipeline** - Final safety net
+4. **CI Pipeline** - Final safety net with system validation
 
 **Documentation:**
 - **[Preventing CI Failures →](docs/PREVENTING_CI_FAILURES.md)** - Complete guide with examples

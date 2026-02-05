@@ -156,6 +156,7 @@ except ValueError:
 Before pushing code, ensure:
 
 - [ ] **Run local test script**: `./scripts/run_all_checks.sh`
+- [ ] **Run system validation**: `python scripts/validate_flaky_detector.py`
 - [ ] **Pre-commit hooks installed**: `pre-commit install`
 - [ ] **All tests pass**: `pytest --cov=.`
 - [ ] **No linting errors**: `ruff check .`

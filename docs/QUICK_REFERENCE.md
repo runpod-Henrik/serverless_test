@@ -19,8 +19,9 @@ pytest                          # Run tests
 
 ### Comprehensive Checks
 ```bash
-./scripts/run_all_checks.sh     # All checks (30-60s)
-pre-commit run --all-files      # Pre-commit hooks
+./scripts/run_all_checks.sh           # All checks (30-60s)
+python scripts/validate_flaky_detector.py  # End-to-end system validation
+pre-commit run --all-files            # Pre-commit hooks
 ```
 
 ### Specific Tools

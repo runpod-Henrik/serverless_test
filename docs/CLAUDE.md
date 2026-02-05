@@ -69,15 +69,23 @@ Returns a summary with:
 **🛡️ Before every push - Run comprehensive checks:**
 ```bash
 ./scripts/run_all_checks.sh  # Runs ALL CI checks locally (30-60s)
+python scripts/validate_flaky_detector.py  # End-to-end system validation
 ```
 
-This runs:
+`run_all_checks.sh` runs:
 - Ruff linting & formatting
 - Pylint code quality (catches variable shadowing)
 - Mypy type checking
 - Pytest with coverage (93 tests, 96%+ coverage)
 - Actionlint workflow validation
 - Bandit security scanning
+- End-to-end system validation
+
+`validate_flaky_detector.py` validates:
+- Configuration system
+- Database system
+- Local flaky detector (worker.py)
+- RunPod integration (if credentials available)
 
 **Run all tests:**
 ```bash
