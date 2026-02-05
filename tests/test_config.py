@@ -14,7 +14,7 @@ class TestConfig:
     def test_default_config(self) -> None:
         """Test default configuration is loaded."""
         config = Config()
-        assert config.get("runs") == 11  # BUG: Should be 10, not 11
+        assert config.get("runs") == 10
         assert config.get("parallelism") == 4
         assert config.get("timeout") == 300
 
