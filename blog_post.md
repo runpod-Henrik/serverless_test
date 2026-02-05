@@ -576,8 +576,8 @@ That's the power of serverless architecture done right.
 - **Code Quality:** 100% type coverage, linted with ruff, formatted
 - **Dependencies:** 12 pinned packages (6 core, 6 dev tools)
 - **Supported Languages:** Python, Go, TypeScript (Jest/Vitest), JavaScript (Mocha)
-- **Docker Image Size:** 285 MB (Python only) / ~1.2 GB (multi-language)
-- **Cold Start Time:** ~15 seconds (Python) / ~20-25 seconds (multi-language)
+- **Docker Image Size:** 285 MB (Python only) / ~2.1 GB (multi-language)
+- **Cold Start Time:** ~15 seconds (Python) / ~25-30 seconds (multi-language)
 - **Test Execution:** 50 tests in ~2 minutes (5 parallel workers)
 - **Cost per Run:** ~$0.024 (100 tests, CPU instance)
 - **Development Time:** 3 days (from idea to production with full quality checks and multi-language support)
@@ -953,17 +953,17 @@ export default defineConfig({
 - [examples/README.md](examples/README.md) - Setup guides for each framework
 
 **Container Size Impact:**
-- Python only: ~500MB
-- Python + Node.js + Go: ~1.2GB
-- Cold start increase: ~5-10 seconds
+- Python only: ~285MB
+- Python + Node.js + Go: ~2.1GB
+- Cold start increase: ~10-15 seconds
 
 **Implementation Status:** 📝 Design complete, ready for implementation
 
 **Trade-offs:**
 - ✅ Unified tool across all languages
 - ✅ Simple, consistent interface
-- ⚠️ Larger Docker image (~1.2GB vs 500MB)
-- ⚠️ Slightly longer cold starts
+- ⚠️ Larger Docker image (~2.1GB vs 285MB)
+- ⚠️ Slightly longer cold starts (~25-30s vs ~15s)
 - ⚠️ Test repos need seed configuration
 
 ### Future Language Support

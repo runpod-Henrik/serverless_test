@@ -315,7 +315,7 @@ The project includes two Dockerfile options:
 #### Option A: Multi-Language Support (Default - `Dockerfile`)
 Includes Python, Node.js, and Go runtimes for testing projects in multiple languages.
 
-- **Size**: ~1.2 GB
+- **Size**: ~2.1 GB
 - **Supports**: Python, Go, TypeScript/Jest, TypeScript/Vitest, JavaScript/Mocha
 - **Use when**: You have polyglot projects or need to test multiple languages
 
