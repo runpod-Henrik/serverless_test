@@ -299,13 +299,13 @@ def test_order_processing_is_eventually_consistent():
 This test uses the `TEST_SEED` environment variable (set by the handler) to get different random values on each run, simulating non-deterministic test behavior.
 
 **💡 Want more examples?** The repository includes complete flaky test examples for all 5 supported languages in the `examples/` directory:
-- Python/pytest: 6 flaky patterns
-- Go: 8 patterns including goroutines and channels
-- TypeScript/Jest: 10 patterns with async/promises
-- TypeScript/Vitest: 10 patterns with ESM
-- JavaScript/Mocha: 12 patterns with callbacks
+- Python/pytest: 6 flaky patterns (26.7% avg flakiness)
+- Go: 8 patterns including goroutines and channels (35.6% avg flakiness)
+- TypeScript/Jest: 10 patterns with async/promises (44.0% avg flakiness)
+- TypeScript/Vitest: 10 patterns with ESM (50.5% avg flakiness)
+- JavaScript/Mocha: 12 patterns with callbacks (43.8% avg flakiness)
 
-Each example includes setup instructions and realistic flaky scenarios. See [examples/README.md](examples/README.md).
+Each example includes setup instructions, realistic flaky scenarios, and TEST_RESULTS.md documenting validation from 20 test runs with different seeds. All examples have been tested and confirmed to show reproducible flaky behavior. See [examples/README.md](examples/README.md).
 
 ## Step 5 — Building the Docker Container
 

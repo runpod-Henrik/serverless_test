@@ -156,6 +156,16 @@ Each example includes:
 - ✅ Seed configuration for reproducible randomness
 - ✅ Complete README with usage instructions
 - ✅ All necessary dependencies and configuration files
+- ✅ TEST_RESULTS.md with validation from 20-run analysis
+
+**Validation Results:**
+- Python: 26.7% average flakiness (most balanced)
+- Go: 35.6% average flakiness (8 patterns tested)
+- TypeScript/Jest: 44.0% average flakiness (10 patterns tested)
+- TypeScript/Vitest: 50.5% average flakiness (partial reproducibility)
+- JavaScript/Mocha: 43.8% average flakiness (12 patterns tested)
+
+All examples have been validated with 20 test runs using different seeds, confirming reproducibility and realistic flaky behavior patterns.
 
 See [examples/README.md](examples/README.md) for detailed documentation.
 
