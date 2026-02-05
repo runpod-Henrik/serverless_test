@@ -2,6 +2,7 @@ import json
 import os
 import random
 import shlex
+import shutil
 import subprocess
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -181,8 +182,6 @@ def handler(job: dict[str, Any]) -> dict[str, Any]:
     try:
         if is_local_path:
             # Copy local directory instead of cloning
-            import shutil
-
             print(f"Copying local repository: {repo}")
             try:
                 # Copy directory contents to workdir
