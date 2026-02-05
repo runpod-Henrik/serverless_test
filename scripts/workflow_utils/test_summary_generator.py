@@ -67,6 +67,7 @@ def generate_test_summary(
     last_success_sha: Optional[str] = None,
     changed_files: Optional[list[str]] = None,
     commits: Optional[list[str]] = None,
+    previous_coverage: Optional[float] = None,
 ) -> str:
     """
     Generate markdown test summary.
@@ -77,6 +78,7 @@ def generate_test_summary(
         last_success_sha: SHA of last successful run (optional)
         changed_files: List of changed files (optional)
         commits: List of commit details (optional)
+        previous_coverage: Previous coverage percentage for delta calculation (optional)
 
     Returns:
         Markdown formatted summary
@@ -144,6 +146,18 @@ def generate_test_summary(
                 summary += f"- ... and {len(python_files) - 10} more\n"
             summary += "\n"
 
+    # Calculate coverage delta
+    coverage_delta = None
+    coverage_delta_str = ""
+    if previous_coverage is not None and previous_coverage > 0:
+        coverage_delta = coverage - previous_coverage
+        if coverage_delta > 0:
+            coverage_delta_str = f" (🟢 +{coverage_delta:.1f}%)"
+        elif coverage_delta < 0:
+            coverage_delta_str = f" (🔴 {coverage_delta:.1f}%)"
+        else:
+            coverage_delta_str = " (➡️ no change)"
+
     # Statistics table
     summary += "| Metric | Value |\n"
     summary += "|--------|-------|\n"
@@ -153,15 +167,20 @@ def generate_test_summary(
     summary += f"| ⚠️ Errors | {errors} |\n"
     summary += f"| ⏭️ Skipped | {skipped} |\n"
     summary += f"| ⏱️ Duration | {time:.2f}s |\n"
-    summary += f"| 📊 Coverage | {coverage:.1f}% |\n\n"
+    summary += f"| 📊 Coverage | {coverage:.1f}%{coverage_delta_str} |\n\n"
 
-    # Coverage status
+    # Coverage status with delta warning
     if coverage >= 95:
         summary += "### 🟢 Coverage Status: Excellent (≥95%)\n"
     elif coverage >= 90:
         summary += "### 🟡 Coverage Status: Good (≥90%)\n"
     else:
         summary += "### 🔴 Coverage Status: Needs Improvement (<90%)\n"
+
+    # Highlight negative coverage delta
+    if coverage_delta is not None and coverage_delta < 0:
+        summary += f"\n⚠️ **Coverage decreased by {abs(coverage_delta):.1f}%** "
+        summary += f"(was {previous_coverage:.1f}%, now {coverage:.1f}%)\n"
 
     return summary
 

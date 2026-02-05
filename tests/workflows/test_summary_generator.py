@@ -275,6 +275,90 @@ class TestGenerateTestSummary:
         assert "commit4" in summary  # Fifth commit shown
         assert "... and 5 more commits" in summary
 
+    def test_generate_summary_coverage_increased(self) -> None:
+        """Test summary shows positive coverage delta."""
+        test_results = {
+            "tests": 10,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "time": 5.5,
+            "passed": 10,
+        }
+
+        summary = generate_test_summary(
+            test_results,
+            95.0,
+            previous_coverage=90.0,
+        )
+
+        assert "95.0%" in summary
+        assert "🟢 +5.0%" in summary
+
+    def test_generate_summary_coverage_decreased(self) -> None:
+        """Test summary shows negative coverage delta with warning."""
+        test_results = {
+            "tests": 10,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "time": 5.5,
+            "passed": 10,
+        }
+
+        summary = generate_test_summary(
+            test_results,
+            85.0,
+            previous_coverage=92.0,
+        )
+
+        assert "85.0%" in summary
+        assert "🔴 -7.0%" in summary
+        assert "⚠️ **Coverage decreased by 7.0%**" in summary
+        assert "(was 92.0%, now 85.0%)" in summary
+
+    def test_generate_summary_coverage_unchanged(self) -> None:
+        """Test summary shows no change when coverage is same."""
+        test_results = {
+            "tests": 10,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "time": 5.5,
+            "passed": 10,
+        }
+
+        summary = generate_test_summary(
+            test_results,
+            90.0,
+            previous_coverage=90.0,
+        )
+
+        assert "90.0%" in summary
+        assert "➡️ no change" in summary
+
+    def test_generate_summary_no_previous_coverage(self) -> None:
+        """Test summary without previous coverage (first run)."""
+        test_results = {
+            "tests": 10,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "time": 5.5,
+            "passed": 10,
+        }
+
+        summary = generate_test_summary(
+            test_results,
+            90.0,
+            previous_coverage=None,
+        )
+
+        assert "90.0%" in summary
+        assert "🟢" not in summary or "Coverage Status" in summary  # Only status emoji, not delta
+        assert "🔴 -" not in summary  # No negative delta
+        assert "➡️ no change" not in summary
+
 
 class TestMainFunction:
     """Test CLI main function."""

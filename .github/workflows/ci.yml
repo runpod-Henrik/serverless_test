@@ -174,6 +174,60 @@ jobs:
               core.setOutput('created_at', '');
             }
 
+      - name: Get previous coverage
+        id: prev-coverage
+        if: always() && steps.last-success.outputs.run_number != ''
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: ${{ steps.last-success.outputs.run_number }}
+              });
+
+              const coverageArtifact = artifacts.data.artifacts.find(
+                a => a.name === 'coverage-report'
+              );
+
+              if (coverageArtifact) {
+                const download = await github.rest.actions.downloadArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: coverageArtifact.id,
+                  archive_format: 'zip'
+                });
+
+                // Save artifact data for extraction
+                const fs = require('fs');
+                fs.writeFileSync('previous-coverage.zip', Buffer.from(download.data));
+
+                // Extract and read coverage
+                const { execSync } = require('child_process');
+                execSync('unzip -q previous-coverage.zip -d previous-coverage || true');
+
+                if (fs.existsSync('previous-coverage/coverage.xml')) {
+                  const xml = fs.readFileSync('previous-coverage/coverage.xml', 'utf8');
+                  const match = xml.match(/line-rate="([0-9.]+)"/);
+                  if (match) {
+                    const coverage = (parseFloat(match[1]) * 100).toFixed(2);
+                    core.setOutput('coverage', coverage);
+                  } else {
+                    core.setOutput('coverage', '0');
+                  }
+                } else {
+                  core.setOutput('coverage', '0');
+                }
+              } else {
+                core.setOutput('coverage', '0');
+              }
+            } catch (error) {
+              console.log('Could not fetch previous coverage:', error.message);
+              core.setOutput('coverage', '0');
+            }
+
       - name: Run tests with coverage
         env:
           PYTHONPATH: ${{ github.workspace }}
@@ -198,7 +252,7 @@ jobs:
           LAST_SHA="${{ steps.last-success.outputs.sha }}"
 
           # Verify the commit exists
-          if ! git cat-file -e $LAST_SHA^{commit} 2>/dev/null; then
+          if ! git cat-file -e "$LAST_SHA^{commit}" 2>/dev/null; then
             echo "Warning: Last successful commit $LAST_SHA not found in history"
             echo "total_changed=0" >> $GITHUB_OUTPUT
             echo "python_changed=0" >> $GITHUB_OUTPUT
@@ -208,7 +262,7 @@ jobs:
           fi
 
           # Get changed files
-          git diff --name-only $LAST_SHA HEAD > changed_files.txt
+          git diff --name-only "$LAST_SHA" HEAD > changed_files.txt
 
           # Get statistics
           TOTAL_CHANGED=$(wc -l < changed_files.txt | tr -d ' ')
@@ -216,12 +270,12 @@ jobs:
           WORKFLOW_CHANGED=$(grep "\.github/workflows" changed_files.txt | wc -l | tr -d ' ')
 
           # Get detailed diff stats
-          git diff --stat $LAST_SHA HEAD > diff_stats.txt
+          git diff --stat "$LAST_SHA" HEAD > diff_stats.txt
 
           # Get commit information
-          git log --oneline --no-decorate $LAST_SHA..HEAD > commits_oneline.txt
-          git log --format="%h|%an|%ae|%ar|%s" $LAST_SHA..HEAD > commits_detailed.txt
-          COMMIT_COUNT=$(git rev-list --count $LAST_SHA..HEAD)
+          git log --oneline --no-decorate "$LAST_SHA..HEAD" > commits_oneline.txt
+          git log --format="%h|%an|%ae|%ar|%s" "$LAST_SHA..HEAD" > commits_detailed.txt
+          COMMIT_COUNT=$(git rev-list --count "$LAST_SHA..HEAD")
 
           echo "total_changed=$TOTAL_CHANGED" >> $GITHUB_OUTPUT
           echo "python_changed=$PYTHON_CHANGED" >> $GITHUB_OUTPUT
@@ -233,6 +287,7 @@ jobs:
         if: always()
         env:
           LAST_SUCCESS_SHA: ${{ steps.changes.outputs.last_success_sha }}
+          PREV_COVERAGE: ${{ steps.prev-coverage.outputs.coverage }}
         run: |
           python << 'EOF'
           import xml.etree.ElementTree as ET
@@ -258,6 +313,12 @@ jobs:
               coverage = float(cov_root.attrib.get('line-rate', 0)) * 100
           except:
               coverage = 0.0
+
+          # Get previous coverage for delta calculation
+          try:
+              previous_coverage = float(os.environ.get('PREV_COVERAGE', '0'))
+          except:
+              previous_coverage = 0.0
 
           # Write to GitHub summary
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
@@ -348,6 +409,18 @@ jobs:
                           f.write(f'- 🧪 Test files modified: {len(test_files)} file(s)\n')
                       f.write('\n')
 
+              # Calculate coverage delta
+              coverage_delta = None
+              coverage_delta_str = ""
+              if previous_coverage is not None and previous_coverage > 0:
+                  coverage_delta = coverage - previous_coverage
+                  if coverage_delta > 0:
+                      coverage_delta_str = f" (🟢 +{coverage_delta:.1f}%)"
+                  elif coverage_delta < 0:
+                      coverage_delta_str = f" (🔴 {coverage_delta:.1f}%)"
+                  else:
+                      coverage_delta_str = " (➡️ no change)"
+
               # Statistics table
               f.write('| Metric | Value |\n')
               f.write('|--------|-------|\n')
@@ -357,7 +430,7 @@ jobs:
               f.write(f'| ⚠️ Errors | {errors} |\n')
               f.write(f'| ⏭️ Skipped | {skipped} |\n')
               f.write(f'| ⏱️ Duration | {time:.2f}s |\n')
-              f.write(f'| 📊 Coverage | {coverage:.1f}% |\n\n')
+              f.write(f'| 📊 Coverage | {coverage:.1f}%{coverage_delta_str} |\n\n')
 
               # Failed tests details
               if failures + errors > 0:
@@ -393,6 +466,11 @@ jobs:
                   f.write('### 🟡 Coverage Status: Good (≥90%)\n')
               else:
                   f.write('### 🔴 Coverage Status: Needs Improvement (<90%)\n')
+
+              # Highlight negative coverage delta
+              if coverage_delta is not None and coverage_delta < 0:
+                  f.write(f'\n⚠️ **Coverage decreased by {abs(coverage_delta):.1f}%** ')
+                  f.write(f'(was {previous_coverage:.1f}%, now {coverage:.1f}%)\n')
           EOF
 
       - name: Upload coverage reports
