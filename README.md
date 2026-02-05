@@ -8,7 +8,7 @@ Automatically detect flaky tests by running them multiple times in parallel. Int
 
 ```bash
 # Run automated setup in your repository
-bash <(curl -s https://raw.githubusercontent.com/runpod-Henrik/serverless_test/main/setup.sh)
+bash <(curl -s https://raw.githubusercontent.com/runpod/testflake/main/setup.sh)
 ```
 
 ### Manual Setup (5 minutes)
@@ -138,8 +138,8 @@ python scripts/workflow_utils/validate_and_fix.py --ai-suggest
 
 ```bash
 # Clone the repository
-git clone https://github.com/runpod-Henrik/serverless_test.git
-cd serverless_test
+git clone https://github.com/runpod/testflake.git
+cd testflake
 
 # Install dependencies
 pip install -r requirements.txt
@@ -149,8 +149,8 @@ pip install -r requirements.txt
 
 ```bash
 # Clone the repository
-git clone https://github.com/runpod-Henrik/serverless_test.git
-cd serverless_test
+git clone https://github.com/runpod/testflake.git
+cd testflake
 
 # Install core dependencies
 uv sync
@@ -317,7 +317,7 @@ runpod.api_key = "your-api-key"
 result = runpod.run_sync(
     endpoint_id="your-endpoint-id",
     input={
-        "repo": "https://github.com/runpod-Henrik/serverless_test",
+        "repo": "https://github.com/runpod/testflake",
         "test_command": "pytest tests/test_flaky.py",
         "runs": 50,
         "parallelism": 5
@@ -380,7 +380,7 @@ The serverless function accepts the following input parameters:
 **test_input.json** - Simple test configuration:
 ```json
 {
-  "repo": "https://github.com/runpod-Henrik/serverless_test",
+  "repo": "https://github.com/runpod/testflake",
   "test_command": "pytest tests/test_flaky.py",
   "runs": 50,
   "parallelism": 5
@@ -390,7 +390,7 @@ The serverless function accepts the following input parameters:
 **input.json** - Production configuration:
 ```json
 {
-  "repo": "https://github.com/runpod-Henrik/serverless_test",
+  "repo": "https://github.com/runpod/testflake",
   "test_command": "pytest tests/test_flaky.py",
   "runs": 100,
   "parallelism": 8

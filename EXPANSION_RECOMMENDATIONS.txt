@@ -821,7 +821,7 @@ pip install flaky-detector-cli
 flaky-detector run tests/test_checkout.py --runs 100
 
 # Check status
-flaky-detector status runpod-Henrik/serverless_test
+flaky-detector status runpod/testflake
 
 # View trends
 flaky-detector trends --repo myorg/myrepo --days 30

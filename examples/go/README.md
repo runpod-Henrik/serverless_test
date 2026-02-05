@@ -60,7 +60,7 @@ When running 10 times, you should see some tests fail intermittently:
 ### Input configuration:
 ```json
 {
-  "repo": "https://github.com/your-fork/serverless_test",
+  "repo": "https://github.com/your-fork/testflake",
   "test_command": "go test ./examples/go/... -v",
   "runs": 100,
   "parallelism": 10,

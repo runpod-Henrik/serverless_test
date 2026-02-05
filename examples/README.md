@@ -70,7 +70,7 @@ GO_TEST_SEED=12345 go test -v
 
 ```json
 {
-  "repo": "https://github.com/your-fork/serverless_test",
+  "repo": "https://github.com/your-fork/testflake",
   "test_command": "go test ./examples/go/... -v",
   "runs": 100,
   "parallelism": 10,
@@ -102,7 +102,7 @@ JEST_SEED=12345 npm test
 
 ```json
 {
-  "repo": "https://github.com/your-fork/serverless_test",
+  "repo": "https://github.com/your-fork/testflake",
   "test_command": "cd examples/typescript-jest && npm test",
   "runs": 100,
   "parallelism": 10,
@@ -133,7 +133,7 @@ VITE_TEST_SEED=12345 npm test
 
 ```json
 {
-  "repo": "https://github.com/your-fork/serverless_test",
+  "repo": "https://github.com/your-fork/testflake",
   "test_command": "cd examples/typescript-vitest && npm test",
   "runs": 100,
   "parallelism": 10,
@@ -164,7 +164,7 @@ MOCHA_SEED=12345 npm test
 **Input config:**
 ```json
 {
-  "repo": "https://github.com/your-fork/serverless_test",
+  "repo": "https://github.com/your-fork/testflake",
   "test_command": "cd examples/javascript-mocha && npm test",
   "runs": 100,
   "parallelism": 10,

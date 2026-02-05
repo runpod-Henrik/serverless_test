@@ -18,7 +18,7 @@ Run the interactive setup script in your repository:
 
 ```bash
 # Clone or download the flaky test detector
-git clone https://github.com/runpod-Henrik/serverless_test.git flaky-detector
+git clone https://github.com/runpod/testflake.git flaky-detector
 cd your-repository
 
 # Run setup
@@ -347,7 +347,7 @@ cat flaky_test_results.json | jq '.failures'
 
 ## Support
 
-- **Issues**: https://github.com/runpod-Henrik/serverless_test/issues
+- **Issues**: https://github.com/runpod/testflake/issues
 - **Documentation**: See `docs/` directory
 - **Examples**: See `tests/` directory
 

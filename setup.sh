@@ -155,7 +155,7 @@ create_config() {
 
     cat > .flaky-detector.yml <<EOF
 # Flaky Test Detector Configuration
-# See: https://github.com/runpod-Henrik/serverless_test
+# See: https://github.com/runpod/testflake
 
 # Test execution settings
 runs: $RUNS                    # Number of times to run each test (1-1000)
@@ -337,7 +337,7 @@ print_next_steps() {
     echo "  • Configuration: TEST_INPUT_FILES.md"
     echo "  • CI Integration: docs/CICD_INTEGRATION.md"
     echo ""
-    echo -e "${GREEN}Need help?${NC} https://github.com/runpod-Henrik/serverless_test"
+    echo -e "${GREEN}Need help?${NC} https://github.com/runpod/testflake"
     echo ""
 }
 

@@ -258,7 +258,7 @@ jobs:
             `}
 
             ---
-            <sub>🤖 Automated analysis by [Flaky Test Detector](https://github.com/runpod-Henrik/serverless_test)</sub>
+            <sub>🤖 Automated analysis by [Flaky Test Detector](https://github.com/runpod/testflake)</sub>
             `;
 
             // Post or update comment

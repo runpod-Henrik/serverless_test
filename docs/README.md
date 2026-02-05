@@ -197,9 +197,9 @@ cat flaky_test_results.json | jq '.results[] | select(.passed == false) | .stder
 
 ## 🔗 External Resources
 
-- **GitHub Repository**: https://github.com/runpod-Henrik/serverless_test
+- **GitHub Repository**: https://github.com/runpod/testflake
 - **RunPod Documentation**: https://docs.runpod.io/
-- **Issue Tracker**: https://github.com/runpod-Henrik/serverless_test/issues
+- **Issue Tracker**: https://github.com/runpod/testflake/issues
 
 ## 📝 Contributing
 

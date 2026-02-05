@@ -528,8 +528,8 @@ ImportError while importing test module
 ```bash
 # Simulate CI environment
 cd /tmp
-git clone https://github.com/your-user/serverless_test.git
-cd serverless_test
+git clone https://github.com/your-user/testflake.git
+cd testflake
 
 # This will fail (like CI)
 pytest tests/

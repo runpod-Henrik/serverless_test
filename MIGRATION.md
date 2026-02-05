@@ -1,12 +1,10 @@
 # Migration Guide
 
-This guide helps you move the flaky test detector to a new repository/organization.
+This guide documents the migration of the flaky test detector to https://github.com/runpod/testflake
 
-## Recommended New Name
+## Project Name
 
-**`flaky-shield`** - Short, memorable, conveys protection against flaky tests.
-
-Alternative: `testflare`, `flake-detective`, `reliable-tests`, `anti-flake`
+**`testflake`** - Short, memorable, clearly indicates flaky test detection.
 
 ## Migration Steps
 
@@ -45,15 +43,9 @@ git checkout -b migration-prep
 
 **Search and replace:**
 ```bash
-# Find all occurrences
-grep -r "runpod-Henrik/serverless_test" .
-grep -r "serverless_test" .
-
-# Replace with new name
-# Example: for flaky-shield under new-org
-find . -type f -name "*.md" -exec sed -i '' 's/runpod-Henrik\/serverless_test/new-org\/flaky-shield/g' {} +
-find . -type f -name "*.sh" -exec sed -i '' 's/runpod-Henrik\/serverless_test/new-org\/flaky-shield/g' {} +
-find . -type f -name "*.yml" -exec sed -i '' 's/runpod-Henrik\/serverless_test/new-org\/flaky-shield/g' {} +
+# All references have already been updated to runpod/testflake
+# This step is complete!
+grep -r "runpod/testflake" .  # Verify new references
 ```
 
 #### 4. Update Package/Module Names
@@ -72,21 +64,21 @@ If renaming (e.g., to flaky-shield):
 
 #### 1. Create Repository on GitHub
 
-1. Go to new organization: `https://github.com/organizations/NEW_ORG/repositories/new`
-2. Name: `flaky-shield` (or chosen name)
+1. Go to RunPod organization: `https://github.com/organizations/runpod/repositories/new`
+2. Name: `testflake`
 3. Description: "Automated flaky test detection with parallel execution and CI integration"
 4. **Do NOT** initialize with README (we'll push existing)
 5. Set visibility (Public recommended)
-6. Create repository
+6. Create repository at: `https://github.com/runpod/testflake`
 
 #### 2. Update Local Git Remote
 
 ```bash
 # Add new remote
-git remote add new-origin git@github.com:NEW_ORG/flaky-shield.git
+git remote add new-origin git@github.com:runpod/testflake.git
 
 # Or update existing origin
-git remote set-url origin git@github.com:NEW_ORG/flaky-shield.git
+git remote set-url origin git@github.com:runpod/testflake.git
 
 # Verify
 git remote -v
@@ -187,7 +179,7 @@ Replace setup URL:
 ```markdown
 ```bash
 # Old
-bash <(curl -s https://raw.githubusercontent.com/runpod-Henrik/serverless_test/main/setup.sh)
+bash <(curl -s https://raw.githubusercontent.com/runpod/testflake/main/setup.sh)
 
 # New
 bash <(curl -s https://raw.githubusercontent.com/NEW_ORG/flaky-shield/main/setup.sh)
@@ -296,33 +288,16 @@ Update any external references:
 - [ ] Verify GitHub Actions workflows
 - [ ] Check all documentation links
 
-## Quick Migration Script
+## Migration Status
 
-```bash
-#!/bin/bash
-# Quick migration helper
+✅ **All references updated to runpod/testflake**
 
-NEW_ORG="your-org"
-NEW_REPO="flaky-shield"
-OLD_PATTERN="runpod-Henrik/serverless_test"
-NEW_PATTERN="$NEW_ORG/$NEW_REPO"
+The codebase has been prepared for migration:
+- All URLs updated from `runpod-Henrik/serverless_test` to `runpod/testflake`
+- All directory references updated to `testflake`
+- Documentation consolidated and cross-references fixed
 
-echo "Updating references from $OLD_PATTERN to $NEW_PATTERN..."
-
-# Update markdown files
-find . -type f -name "*.md" -exec sed -i '' "s|$OLD_PATTERN|$NEW_PATTERN|g" {} +
-
-# Update shell scripts
-find . -type f -name "*.sh" -exec sed -i '' "s|$OLD_PATTERN|$NEW_PATTERN|g" {} +
-
-# Update workflows
-find .github/workflows -type f -name "*.yml" -exec sed -i '' "s|$OLD_PATTERN|$NEW_PATTERN|g" {} +
-
-# Update JSON configs
-find . -type f -name "*.json" -exec sed -i '' "s|$OLD_PATTERN|$NEW_PATTERN|g" {} +
-
-echo "Done! Review changes with: git diff"
-```
+Ready to push to the new repository!
 
 ## Troubleshooting
 
@@ -332,9 +307,10 @@ Update the raw GitHub URL in setup.sh or in documentation curl commands.
 
 ### Old URLs in documentation
 
-Run the quick migration script above or manually search:
+Search for any remaining old references:
 ```bash
-grep -r "runpod-Henrik" .
+grep -r "runpod-Henrik" .  # Should find nothing
+grep -r "runpod/testflake" .  # Verify new references
 ```
 
 ### CI workflows fail
@@ -345,7 +321,7 @@ Check repository secrets are set correctly in new repo.
 
 Use GitHub's "Search this repository" to find old URLs:
 ```
-runpod-Henrik/serverless_test
+runpod/testflake
 ```
 
 ## Need Help?

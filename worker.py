@@ -143,7 +143,7 @@ def handler(job: dict[str, Any]) -> dict[str, Any]:
     """
     Expected input:
     {
-      "repo": "https://github.com/runpod-Henrik/serverless_test",
+      "repo": "https://github.com/runpod/testflake",
       "test_command": "pytest tests/test_flaky.py",
       "runs": 50,
       "parallelism": 5,

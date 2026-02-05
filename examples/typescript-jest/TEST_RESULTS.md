@@ -71,7 +71,7 @@ To use these tests with the flaky test detector:
 
 ```json
 {
-  "repo": "https://github.com/your-fork/serverless_test",
+  "repo": "https://github.com/your-fork/testflake",
   "test_command": "npm test -- examples/typescript-jest",
   "runs": 100,
   "parallelism": 10,

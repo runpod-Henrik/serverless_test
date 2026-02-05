@@ -18,7 +18,7 @@ This project uses two input configuration files for testing the flaky test detec
 **Default configuration:**
 ```json
 {
-  "repo": "https://github.com/runpod-Henrik/serverless_test",
+  "repo": "https://github.com/runpod/testflake",
   "test_command": "pytest tests/test_flaky.py",
   "runs": 50,
   "parallelism": 5
@@ -50,7 +50,7 @@ This project uses two input configuration files for testing the flaky test detec
 **Default configuration:**
 ```json
 {
-  "repo": "https://github.com/runpod-Henrik/serverless_test",
+  "repo": "https://github.com/runpod/testflake",
   "test_command": "pytest tests/test_flaky.py",
   "runs": 100,
   "parallelism": 8

@@ -123,7 +123,7 @@ def test_runpod_flaky_detector() -> bool:
         # Test with this repository
         repo_url = os.environ.get(
             "GITHUB_REPOSITORY",
-            "https://github.com/runpod-Henrik/serverless_test"
+            "https://github.com/runpod/testflake"
         )
         if not repo_url.startswith("http"):
             repo_url = f"https://github.com/{repo_url}"

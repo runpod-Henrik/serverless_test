@@ -529,7 +529,7 @@ runpod.serverless.start({"handler": handler})
 ### Python (pytest)
 ```json
 {
-  "repo": "https://github.com/runpod-Henrik/serverless_test",
+  "repo": "https://github.com/runpod/testflake",
   "test_command": "pytest tests/test_flaky.py",
   "runs": 100,
   "parallelism": 10

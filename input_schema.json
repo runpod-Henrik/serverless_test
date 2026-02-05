@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/runpod-Henrik/serverless_test/schemas/input.json",
+  "$id": "https://github.com/runpod/testflake/schemas/input.json",
   "title": "Flaky Test Detector Input Configuration",
   "description": "Configuration schema for running the flaky test detector",
   "type": "object",
