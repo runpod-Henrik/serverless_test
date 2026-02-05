@@ -712,8 +712,9 @@ Contributions are welcome! Please:
 2. Create a feature branch
 3. Make your changes
 4. Add tests if applicable
-5. Format code with Black
-6. Submit a pull request
+5. Format code with Ruff (`ruff format .`)
+6. Run quality checks (`ruff check . && mypy worker.py config.py database.py`)
+7. Submit a pull request
 
 ## License
 

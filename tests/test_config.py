@@ -14,16 +14,16 @@ class TestConfig:
     def test_default_config(self):
         """Test default configuration is loaded."""
         config = Config()
-        assert config.get("runs") == 100
-        assert config.get("parallelism") == 10
-        assert config.get("timeout") == 600
+        assert config.get("runs") == 10
+        assert config.get("parallelism") == 4
+        assert config.get("timeout") == 300
 
     def test_config_override(self):
         """Test configuration can be overridden."""
         config = Config({"runs": 200, "parallelism": 20})
         assert config.get("runs") == 200
         assert config.get("parallelism") == 20
-        assert config.get("timeout") == 600  # Should keep default
+        assert config.get("timeout") == 300  # Should keep default
 
     def test_nested_config_merge(self):
         """Test nested dictionaries are merged properly."""
@@ -53,7 +53,7 @@ class TestConfig:
     def test_load_nonexistent_file(self):
         """Test loading from non-existent file returns defaults."""
         config = Config.load_from_file("nonexistent.yml")
-        assert config.get("runs") == 100  # Should be default
+        assert config.get("runs") == 10  # Should be default
 
     def test_get_severity_critical(self):
         """Test severity classification for critical level."""
@@ -123,7 +123,7 @@ class TestConfig:
         """Test getting config value with default fallback."""
         config = Config()
         assert config.get("nonexistent", "default_value") == "default_value"
-        assert config.get("runs", 999) == 100  # Should return actual value
+        assert config.get("runs", 999) == 10  # Should return actual value
 
     def test_invalid_yaml_returns_default(self):
         """Test invalid YAML file returns default config."""
@@ -134,6 +134,6 @@ class TestConfig:
         try:
             config = Config.load_from_file(temp_path)
             # Should fall back to defaults
-            assert config.get("runs") == 100
+            assert config.get("runs") == 10
         finally:
             os.unlink(temp_path)

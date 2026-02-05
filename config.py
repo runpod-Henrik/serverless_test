@@ -9,9 +9,9 @@ from typing import Any
 import yaml
 
 DEFAULT_CONFIG = {
-    "runs": 100,
-    "parallelism": 10,
-    "timeout": 600,
+    "runs": 10,
+    "parallelism": 4,
+    "timeout": 300,
     "ignore_patterns": [],
     "severity_thresholds": {
         "critical": 0.9,

@@ -10,6 +10,8 @@ from typing import Any, Literal
 
 import runpod
 
+from config import Config
+
 FrameworkType = Literal[
     "python", "go", "typescript-jest", "typescript-vitest", "javascript-mocha", "unknown"
 ]
@@ -192,6 +194,17 @@ def handler(job: dict[str, Any]) -> dict[str, Any]:
             raise RuntimeError("Repository clone timed out after 5 minutes") from e
 
         os.chdir(workdir)
+
+        # Load configuration from .flaky-detector.yml if it exists
+        config = Config.load_from_file(os.path.join(workdir, ".flaky-detector.yml"))
+
+        # Apply configuration defaults if not provided in input
+        if "runs" not in inp:
+            runs = config.get("runs", 10)
+        if "parallelism" not in inp:
+            parallelism = config.get("parallelism", 4)
+
+        print(f"Configuration: runs={runs}, parallelism={parallelism}")
 
         # Detect or use explicit framework
         if framework_override:

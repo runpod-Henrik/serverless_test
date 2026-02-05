@@ -81,7 +81,7 @@ python3 test_new_features.py        # Integration tests
 
 **Format code:**
 ```bash
-black .
+ruff format .
 ```
 
 **Start the dashboard:**
@@ -102,7 +102,7 @@ The `test_input.json` file contains example job configuration for testing the ha
 - Python 3.12+
 - `runpod`: Serverless framework
 - `pytest`: Test framework
-- `black`: Code formatting
+- `ruff`: Code formatting and linting
 - `pyyaml`: Configuration parsing
 - `streamlit`: Dashboard framework
 - `plotly`: Interactive charts
