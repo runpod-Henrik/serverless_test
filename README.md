@@ -25,6 +25,28 @@ A RunPod serverless function that detects flaky tests by running them multiple t
 - **Fully Tested**: 40+ tests with 96% code coverage across all main modules
 - **Code Quality**: Linting with ruff, type checking with mypy, automated formatting
 - **CI/CD Quality Gates**: Automated linting, type checking, and coverage enforcement
+- **AI-Powered Workflow Validation**: Automatically catch and fix GitHub Actions workflow issues with Claude API suggestions
+
+## AI-Powered Workflow Validation 🤖
+
+Catch workflow errors before they reach CI with automated validation and AI-powered fix suggestions:
+
+```bash
+# Install pre-commit hooks (validates workflows automatically)
+pip install pre-commit && pre-commit install
+
+# Local validation with AI suggestions
+export ANTHROPIC_API_KEY="your-api-key"
+python scripts/workflow_utils/validate_and_fix.py --ai-suggest
+```
+
+**Features:**
+- ✅ Pre-commit hooks validate workflows before every commit
+- 🤖 Claude API suggests fixes for actionlint errors
+- 💬 AI fix suggestions posted automatically on PRs
+- 📊 Comprehensive validation reports in CI
+
+**[Read the full guide →](docs/AI_WORKFLOW_VALIDATION.md)**
 
 ## Prerequisites
 
