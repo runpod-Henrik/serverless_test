@@ -356,6 +356,62 @@ Automatically detects flaky tests when CI fails:
 
 **Cost:** ~$0.024 per detection run (100 tests, 2 minutes)
 
+### Slack Notifications with User Mentions
+
+To enable Slack notifications that automatically tag commit authors:
+
+1. **Get Slack Webhook URL**
+   ```bash
+   # Create incoming webhook in Slack:
+   # Workspace Settings → Apps → Incoming Webhooks → Add to Slack
+   gh secret set SLACK_WEBHOOK_URL --body "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+   ```
+
+2. **Find Slack User IDs**
+   - Open Slack → Click on user's profile
+   - Click "⋯ More" → "Copy member ID"
+   - Example: `U01234ABCD`
+
+3. **Create GitHub-to-Slack Mapping**
+   ```bash
+   # Create a JSON mapping of GitHub username → Slack user ID
+   gh secret set GITHUB_SLACK_MAP --body '{
+     "octocat": "U01234ABCD",
+     "github-username": "U56789EFGH",
+     "another-user": "U01112IJKL"
+   }'
+   ```
+
+**Slack notification will include:**
+- Flakiness severity with color coding
+- Test statistics (runs, failures, rate)
+- Recent commits with author mentions
+- Files changed (if available)
+- Direct tags/mentions for commit authors
+- Button to view in GitHub Actions
+
+**Example notification:**
+```
+🟡 MEDIUM Flaky Test Detected
+
+Repository: user/repo
+Failure Rate: 35.0%
+Total Runs: 100
+Failed Runs: 35
+
+Recent Commits (3):
+• a1b2c3d Update worker.py validation - @john-slack
+• e4f5g6h Fix timing issue - @jane-slack
+• i7j8k9l Add error handling - @bob-slack
+
+FYI: @john-slack, @jane-slack, @bob-slack
+[View in GitHub Actions]
+```
+
+**Workflow:** `.github/workflows/flaky-test-detector.yml`
+
+**Cost:** ~$0.024 per detection run (100 tests, 2 minutes)
+
 ## Deployment to RunPod
 
 ### Step 1: Choose Your Docker Image

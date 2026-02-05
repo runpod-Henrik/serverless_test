@@ -30,6 +30,55 @@ jobs:
         run: |
           pip install runpod requests
 
+      - name: Get last successful run
+        id: last-success
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'ci.yml',
+              branch: context.payload.workflow_run.head_branch,
+              status: 'success',
+              per_page: 1
+            });
+
+            if (runs.data.workflow_runs.length > 0) {
+              const lastSuccess = runs.data.workflow_runs[0];
+              core.setOutput('sha', lastSuccess.head_sha);
+              core.setOutput('run_number', lastSuccess.run_number);
+            } else {
+              core.setOutput('sha', '');
+              core.setOutput('run_number', '');
+            }
+
+      - name: Analyze code changes
+        id: changes
+        if: steps.last-success.outputs.sha != ''
+        run: |
+          LAST_SHA="${{ steps.last-success.outputs.sha }}"
+          CURRENT_SHA="${{ github.event.workflow_run.head_sha }}"
+
+          # Get changed files
+          git diff --name-only $LAST_SHA $CURRENT_SHA > changed_files.txt
+
+          # Get statistics
+          TOTAL_CHANGED=$(wc -l < changed_files.txt | tr -d ' ')
+          PYTHON_CHANGED=$(grep "\.py$" changed_files.txt | wc -l | tr -d ' ')
+
+          # Get detailed diff
+          git diff --stat $LAST_SHA $CURRENT_SHA > diff_stats.txt
+
+          # Get commit information
+          git log --format="%h|%an|%ar|%s" $LAST_SHA..$CURRENT_SHA > commits_detailed.txt
+          COMMIT_COUNT=$(git rev-list --count $LAST_SHA..$CURRENT_SHA)
+
+          echo "total_changed=$TOTAL_CHANGED" >> $GITHUB_OUTPUT
+          echo "python_changed=$PYTHON_CHANGED" >> $GITHUB_OUTPUT
+          echo "last_success_sha=$LAST_SHA" >> $GITHUB_OUTPUT
+          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+
       - name: Extract failed test information
         id: extract-tests
         run: |
@@ -45,6 +94,8 @@ jobs:
           RUNPOD_ENDPOINT_ID: ${{ secrets.RUNPOD_ENDPOINT_ID }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           TEST_COMMAND: ${{ steps.extract-tests.outputs.failed_tests }}
+          LAST_SUCCESS_SHA: ${{ steps.changes.outputs.last_success_sha }}
+          CURRENT_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           python << 'EOF'
           import runpod
@@ -98,6 +149,58 @@ jobs:
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
               f.write(f'## {severity} Flaky Test Detection Results\n\n')
               f.write(f'**Severity:** {severity_level}\n\n')
+
+              # Show changes since last success
+              last_success_sha = os.environ.get('LAST_SUCCESS_SHA', '')
+              if last_success_sha and os.path.exists('changed_files.txt'):
+                  f.write('### 📝 Changes That May Have Introduced Flakiness\n\n')
+
+                  with open('changed_files.txt') as cf:
+                      changed_files = [line.strip() for line in cf if line.strip()]
+
+                  python_files = [f for f in changed_files if f.endswith('.py')]
+                  test_files = [f for f in changed_files if 'test' in f.lower() and f.endswith('.py')]
+
+                  current_sha = os.environ.get("CURRENT_SHA", "HEAD")
+
+                  # Show commit information
+                  if os.path.exists('commits_detailed.txt'):
+                      with open('commits_detailed.txt') as cm:
+                          commits = [line.strip() for line in cm if line.strip()]
+
+                      f.write(f'**Commits:** {len(commits)} new commit(s)\n')
+                      f.write(f'**Comparing:** `{last_success_sha[:7]}...{current_sha[:7]}`\n\n')
+
+                      if commits:
+                          f.write('**Commits in this change:**\n')
+                          for commit in commits[:5]:
+                              parts = commit.split('|', 3)
+                              if len(parts) >= 4:
+                                  sha, author, time, message = parts[0], parts[1], parts[2], parts[3]
+                                  # Truncate message
+                                  if len(message) > 50:
+                                      message = message[:47] + '...'
+                                  f.write(f'- `{sha}` {message} _{author} ({time})_\n')
+                          if len(commits) > 5:
+                              f.write(f'- ... and {len(commits) - 5} more commits\n')
+                          f.write('\n')
+                  else:
+                      f.write(f'**Comparing:** `{last_success_sha[:7]}...{current_sha[:7]}`\n\n')
+
+                  if python_files:
+                      f.write('**Python Files Changed:**\n')
+                      for pf in python_files[:8]:
+                          f.write(f'- `{pf}`\n')
+                      if len(python_files) > 8:
+                          f.write(f'- ... and {len(python_files) - 8} more\n')
+                      f.write('\n')
+
+                  # Highlight potentially problematic changes
+                  core_files = [f for f in python_files if f in ['worker.py', 'config.py', 'database.py']]
+                  if core_files:
+                      f.write('⚠️ **Core modules modified:** ')
+                      f.write(', '.join([f'`{f}`' for f in core_files]))
+                      f.write('\n\n')
 
               # Statistics
               f.write('### Summary\n\n')
@@ -231,6 +334,68 @@ jobs:
             `;
             }
 
+            // Add changes information
+            const fs = require('fs');
+            if (fs.existsSync('changed_files.txt')) {
+              const changedFiles = fs.readFileSync('changed_files.txt', 'utf8')
+                .split('\n')
+                .filter(f => f.trim());
+
+              if (changedFiles.length > 0) {
+                const pythonFiles = changedFiles.filter(f => f.endsWith('.py'));
+                const coreFiles = pythonFiles.filter(f =>
+                  ['worker.py', 'config.py', 'database.py'].includes(f)
+                );
+
+                body += `\n### 📝 Changes That May Have Introduced Flakiness\n\n`;
+
+                // Show commit information
+                if (fs.existsSync('commits_detailed.txt')) {
+                  const commits = fs.readFileSync('commits_detailed.txt', 'utf8')
+                    .split('\n')
+                    .filter(c => c.trim());
+
+                  if (commits.length > 0) {
+                    body += `**Commits:** ${commits.length} new commit(s)\n\n`;
+                    body += '<details>\n<summary>View commits</summary>\n\n';
+                    commits.slice(0, 5).forEach(commit => {
+                      const parts = commit.split('|');
+                      if (parts.length >= 4) {
+                        const [sha, author, time, message] = parts;
+                        const shortMsg = message.length > 60 ? message.substring(0, 57) + '...' : message;
+                        body += `- \`${sha}\` ${shortMsg} - _${author} (${time})_\n`;
+                      }
+                    });
+                    if (commits.length > 5) {
+                      body += `- ... and ${commits.length - 5} more commits\n`;
+                    }
+                    body += '\n</details>\n\n';
+                  }
+                }
+
+                body += `**Files Changed:** ${changedFiles.length} total`;
+                if (pythonFiles.length > 0) {
+                  body += `, ${pythonFiles.length} Python files`;
+                }
+                body += '\n\n';
+
+                if (coreFiles.length > 0) {
+                  body += `⚠️ **Core modules modified:** ${coreFiles.map(f => \`\\\`${f}\\\`\`).join(', ')}\n\n`;
+                }
+
+                if (pythonFiles.length > 0) {
+                  body += '<details>\n<summary>View changed Python files</summary>\n\n';
+                  pythonFiles.slice(0, 10).forEach(f => {
+                    body += `- \`${f}\`\n`;
+                  });
+                  if (pythonFiles.length > 10) {
+                    body += `- ... and ${pythonFiles.length - 10} more\n`;
+                  }
+                  body += '\n</details>\n\n';
+                }
+              }
+            }
+
             // Add sample failures
             if (result.failures > 0) {
               const failedRuns = result.results.filter(r => !r.passed).slice(0, 3);
@@ -254,16 +419,31 @@ jobs:
         if: always() && env.SLACK_WEBHOOK_URL != ''
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_SLACK_MAP: ${{ secrets.GITHUB_SLACK_MAP }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
         run: |
           python << 'EOF'
           import json
           import os
           import requests
+          import re
 
           webhook_url = os.environ.get('SLACK_WEBHOOK_URL')
           if not webhook_url:
               print("No Slack webhook URL configured, skipping notification")
               exit(0)
+
+          # Load GitHub to Slack user mapping (optional)
+          # Format: {"github_username": "slack_user_id", ...}
+          # Slack user IDs can be found in Slack profile (e.g., "U01234ABCD")
+          user_map = {}
+          map_json = os.environ.get('GITHUB_SLACK_MAP', '{}')
+          try:
+              user_map = json.loads(map_json)
+          except:
+              print("No valid GitHub-Slack user mapping found")
 
           # Load results
           with open('flaky_test_results.json') as f:
@@ -286,43 +466,125 @@ jobs:
               severity = "✅ NONE"
               color = "#2ea44f"
 
-          # Send notification
-          payload = {
-              "text": f"{severity} Flaky test detected",
-              "blocks": [
+          # Read commit information
+          commits_info = []
+          commit_authors = set()
+          if os.path.exists('commits_detailed.txt'):
+              with open('commits_detailed.txt') as cf:
+                  for line in cf:
+                      line = line.strip()
+                      if line:
+                          parts = line.split('|', 3)
+                          if len(parts) >= 4:
+                              sha, author, time, message = parts[0], parts[1], parts[2], parts[3]
+                              commits_info.append({
+                                  'sha': sha,
+                                  'author': author,
+                                  'time': time,
+                                  'message': message[:60] + '...' if len(message) > 60 else message
+                              })
+                              commit_authors.add(author)
+
+          # Build notification text with mentions
+          mention_text = ""
+          if commit_authors:
+              mentions = []
+              for author in commit_authors:
+                  # Try to map GitHub username to Slack user ID
+                  if author in user_map:
+                      mentions.append(f"<@{user_map[author]}>")
+                  else:
+                      mentions.append(f"`{author}`")
+              mention_text = f"FYI: {', '.join(mentions)}"
+
+          # Build blocks
+          blocks = [
+              {
+                  "type": "header",
+                  "text": {
+                      "type": "plain_text",
+                      "text": f"{severity} Flaky Test Detected"
+                  }
+              },
+              {
+                  "type": "section",
+                  "fields": [
+                      {
+                          "type": "mrkdwn",
+                          "text": f"*Repository:*\n{os.environ.get('GITHUB_REPOSITORY', 'Unknown')}"
+                      },
+                      {
+                          "type": "mrkdwn",
+                          "text": f"*Failure Rate:*\n{rate * 100:.1f}%"
+                      },
+                      {
+                          "type": "mrkdwn",
+                          "text": f"*Total Runs:*\n{result['total_runs']}"
+                      },
+                      {
+                          "type": "mrkdwn",
+                          "text": f"*Failed Runs:*\n{result['failures']}"
+                      }
+                  ]
+              }
+          ]
+
+          # Add commit information section
+          if commits_info:
+              commit_text = f"*Recent Commits ({len(commits_info)}):*\n"
+              for commit in commits_info[:3]:
+                  author_display = commit['author']
+                  if commit['author'] in user_map:
+                      author_display = f"<@{user_map[commit['author']]}>"
+                  commit_text += f"• `{commit['sha']}` {commit['message']} - {author_display}\n"
+
+              if len(commits_info) > 3:
+                  commit_text += f"• ... and {len(commits_info) - 3} more commits\n"
+
+              blocks.append({
+                  "type": "section",
+                  "text": {
+                      "type": "mrkdwn",
+                      "text": commit_text
+                  }
+              })
+
+          # Add mention section
+          if mention_text:
+              blocks.append({
+                  "type": "context",
+                  "elements": [
+                      {
+                          "type": "mrkdwn",
+                          "text": mention_text
+                      }
+                  ]
+              })
+
+          # Add action button
+          github_url = f"{os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/{os.environ.get('GITHUB_REPOSITORY', '')}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}"
+          blocks.append({
+              "type": "actions",
+              "elements": [
                   {
-                      "type": "header",
+                      "type": "button",
                       "text": {
                           "type": "plain_text",
-                          "text": f"{severity} Flaky Test Detected"
-                      }
-                  },
-                  {
-                      "type": "section",
-                      "fields": [
-                          {
-                              "type": "mrkdwn",
-                              "text": f"*Repository:*\n{os.environ.get('GITHUB_REPOSITORY', 'Unknown')}"
-                          },
-                          {
-                              "type": "mrkdwn",
-                              "text": f"*Failure Rate:*\n{rate * 100:.1f}%"
-                          },
-                          {
-                              "type": "mrkdwn",
-                              "text": f"*Total Runs:*\n{result['total_runs']}"
-                          },
-                          {
-                              "type": "mrkdwn",
-                              "text": f"*Failed Runs:*\n{result['failures']}"
-                          }
-                      ]
+                          "text": "View in GitHub Actions"
+                      },
+                      "url": github_url,
+                      "style": "primary" if rate >= 0.5 else "default"
                   }
-              ],
+              ]
+          })
+
+          payload = {
+              "text": f"{severity} Flaky test detected",
+              "blocks": blocks,
               "attachments": [
                   {
                       "color": color,
-                      "text": f"View details in GitHub Actions"
+                      "text": f"Flakiness detected with {rate * 100:.1f}% failure rate"
                   }
               ]
           }
@@ -330,6 +592,8 @@ jobs:
           response = requests.post(webhook_url, json=payload)
           if response.status_code == 200:
               print("Slack notification sent successfully")
+              if user_map:
+                  print(f"Tagged {len(commit_authors)} commit author(s)")
           else:
               print(f"Failed to send Slack notification: {response.status_code}")
           EOF
