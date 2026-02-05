@@ -108,6 +108,7 @@ addopts = [
 [tool.coverage.run]
 source = ["worker.py", "config.py", "database.py"]
 omit = []
+relative_files = true
 
 [tool.coverage.report]
 precision = 2
