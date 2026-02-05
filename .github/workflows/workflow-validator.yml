@@ -26,8 +26,11 @@ jobs:
       - name: Download and install actionlint
         run: |
           # Download latest actionlint binary
-          curl -sSL https://github.com/rhysd/actionlint/releases/latest/download/actionlint_linux_amd64.tar.gz | tar xz
+          ACTIONLINT_VERSION=$(curl -s https://api.github.com/repos/rhysd/actionlint/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+          curl -sSL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" -o actionlint.tar.gz
+          tar xzf actionlint.tar.gz
           sudo mv actionlint /usr/local/bin/
+          rm -f actionlint.tar.gz
           actionlint --version
 
       - name: Install Python dependencies for AI suggestions
