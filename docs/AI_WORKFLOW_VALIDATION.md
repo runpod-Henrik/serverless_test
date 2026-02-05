@@ -1,15 +1,17 @@
-# AI-Powered Workflow Validation
+# Workflow Validation with Optional AI
 
-Automatically catch and fix GitHub Actions workflow issues using AI.
+Automatically catch and fix GitHub Actions workflow issues with optional AI-powered suggestions.
 
 ## Overview
 
-This project includes automated validation for GitHub Actions workflows with AI-powered fix suggestions:
+This project includes automated validation for GitHub Actions workflows with optional AI-powered fix suggestions:
 
-- **Pre-commit hooks** - Catch issues before committing
-- **Local validation script** - Get AI suggestions locally
+- **Pre-commit hooks** - Catch issues before committing (no API key required)
+- **Local validation script** - Validate workflows locally
 - **CI validation** - Automatic validation on all PRs
-- **AI fix suggestions** - Claude API suggests fixes for common issues
+- **AI fix suggestions** *(Optional)* - Claude API suggests fixes when `ANTHROPIC_API_KEY` is configured
+
+**Note:** The validation system works fully without an API key. AI suggestions are an optional enhancement that requires setting up `ANTHROPIC_API_KEY`.
 
 ## Quick Start
 
@@ -28,27 +30,41 @@ pre-commit run --all-files
 
 Now workflow files will be automatically validated before every commit!
 
-### 2. Local Validation with AI Suggestions
+### 2. Local Validation
 
 ```bash
-# Validate all workflows
+# Validate all workflows (no API key required)
 python scripts/workflow_utils/validate_and_fix.py
 
-# Get AI-powered fix suggestions
-export ANTHROPIC_API_KEY="your-api-key"
-python scripts/workflow_utils/validate_and_fix.py --ai-suggest
-
 # Validate specific workflow
-python scripts/workflow_utils/validate_and_fix.py .github/workflows/ci.yml --ai-suggest
+python scripts/workflow_utils/validate_and_fix.py .github/workflows/ci.yml
 ```
 
-### 3. CI Validation (Automatic)
+### 3. (Optional) Enable AI Suggestions
+
+To get AI-powered fix suggestions, set up your Anthropic API key:
+
+**For Local Development:**
+```bash
+export ANTHROPIC_API_KEY="your-api-key"
+python scripts/workflow_utils/validate_and_fix.py --ai-suggest
+```
+
+**For CI/CD:**
+Add `ANTHROPIC_API_KEY` as a repository secret:
+1. Go to Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Name: `ANTHROPIC_API_KEY`
+4. Value: Your Anthropic API key
+5. Click "Add secret"
+
+### 4. CI Validation (Automatic)
 
 When you create a PR that modifies workflow files, the `Workflow Validator` job will:
 
 1. ✅ Run actionlint to validate all workflows
-2. 🤖 Generate AI fix suggestions using Claude API
-3. 💬 Post suggestions as a PR comment
+2. 🤖 Generate AI fix suggestions if `ANTHROPIC_API_KEY` is configured *(optional)*
+3. 💬 Post results as a PR comment
 4. 📊 Create a detailed summary in the job output
 
 ## Features

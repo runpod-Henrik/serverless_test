@@ -25,26 +25,31 @@ A RunPod serverless function that detects flaky tests by running them multiple t
 - **Fully Tested**: 40+ tests with 96% code coverage across all main modules
 - **Code Quality**: Linting with ruff, type checking with mypy, automated formatting
 - **CI/CD Quality Gates**: Automated linting, type checking, and coverage enforcement
-- **AI-Powered Workflow Validation**: Automatically catch and fix GitHub Actions workflow issues with Claude API suggestions
+- **Workflow Validation**: Automatically catch GitHub Actions workflow issues before they reach CI, with optional AI-powered suggestions
 
-## AI-Powered Workflow Validation 🤖
+## Workflow Validation (Optional AI) 🤖
 
-Catch workflow errors before they reach CI with automated validation and AI-powered fix suggestions:
+Catch workflow errors before they reach CI with automated validation:
 
 ```bash
-# Install pre-commit hooks (validates workflows automatically)
+# Install pre-commit hooks (validates workflows automatically - no API key needed)
 pip install pre-commit && pre-commit install
 
-# Local validation with AI suggestions
+# Local validation (no API key needed)
+python scripts/workflow_utils/validate_and_fix.py
+
+# Optional: Get AI-powered fix suggestions (requires API key)
 export ANTHROPIC_API_KEY="your-api-key"
 python scripts/workflow_utils/validate_and_fix.py --ai-suggest
 ```
 
 **Features:**
-- ✅ Pre-commit hooks validate workflows before every commit
-- 🤖 Claude API suggests fixes for actionlint errors
-- 💬 AI fix suggestions posted automatically on PRs
+- ✅ Pre-commit hooks validate workflows before every commit (no setup required)
+- 🤖 Optional AI suggestions using Claude API (requires `ANTHROPIC_API_KEY`)
+- 💬 Validation results posted on PRs
 - 📊 Comprehensive validation reports in CI
+
+**Note:** Validation works fully without an API key. AI suggestions are an optional enhancement.
 
 **[Read the full guide →](docs/AI_WORKFLOW_VALIDATION.md)**
 
