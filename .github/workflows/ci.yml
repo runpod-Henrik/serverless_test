@@ -386,7 +386,7 @@ jobs:
                           for commit in commits[:5]:
                               parts = commit.split('|')
                               if len(parts) >= 5:
-                                  sha, author, email, time, message = parts[0], parts[1], parts[2], parts[3], '|'.join(parts[4:])
+                                  sha, author, email, commit_time, message = parts[0], parts[1], parts[2], parts[3], '|'.join(parts[4:])
                                   # Truncate long messages
                                   if len(message) > 60:
                                       message = message[:57] + '...'
