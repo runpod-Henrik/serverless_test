@@ -46,22 +46,293 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           TEST_COMMAND: ${{ steps.extract-tests.outputs.failed_tests }}
         run: |
-          python scripts/run_flaky_detector.py
+          python << 'EOF'
+          import runpod
+          import os
+          import json
+
+          runpod.api_key = os.environ['RUNPOD_API_KEY']
+          endpoint = runpod.Endpoint(os.environ['RUNPOD_ENDPOINT_ID'])
+
+          # Run flaky test detection
+          job = endpoint.run({
+              "repo": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}",
+              "test_command": os.environ['TEST_COMMAND'],
+              "runs": 100,
+              "parallelism": 10
+          })
+
+          result = job.output()
+
+          # Save results to file
+          with open('flaky_test_results.json', 'w') as f:
+              json.dump(result, f, indent=2)
+
+          # Determine severity
+          rate = result['repro_rate']
+          if rate >= 0.9:
+              severity = "🔴 CRITICAL"
+              severity_level = "CRITICAL"
+          elif rate >= 0.5:
+              severity = "🟠 HIGH"
+              severity_level = "HIGH"
+          elif rate >= 0.1:
+              severity = "🟡 MEDIUM"
+              severity_level = "MEDIUM"
+          elif rate > 0:
+              severity = "🟢 LOW"
+              severity_level = "LOW"
+          else:
+              severity = "✅ NONE"
+              severity_level = "NONE"
+
+          # Write to GITHUB_OUTPUT
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"severity={severity}\n")
+              f.write(f"severity_level={severity_level}\n")
+              f.write(f"repro_rate={rate}\n")
+              f.write(f"total_runs={result['total_runs']}\n")
+              f.write(f"failures={result['failures']}\n")
+
+          # Generate summary
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+              f.write(f'## {severity} Flaky Test Detection Results\n\n')
+              f.write(f'**Severity:** {severity_level}\n\n')
+
+              # Statistics
+              f.write('### Summary\n\n')
+              f.write('| Metric | Value |\n')
+              f.write('|--------|-------|\n')
+              f.write(f"| Total Runs | {result['total_runs']} |\n")
+              f.write(f"| Parallelism | {result['parallelism']} |\n")
+              f.write(f"| ✅ Passed | {result['total_runs'] - result['failures']} |\n")
+              f.write(f"| ❌ Failed | {result['failures']} |\n")
+              f.write(f"| 📊 Failure Rate | {rate * 100:.1f}% |\n\n")
+
+              # Interpretation
+              f.write('### Analysis\n\n')
+              if rate >= 0.9:
+                  f.write('❌ **This appears to be a real bug**, not flaky behavior. '
+                         'The test fails consistently (≥90% of the time).\n\n')
+                  f.write('**Recommendation:** Fix the underlying issue before merging.\n')
+              elif rate >= 0.5:
+                  f.write('⚠️ **Very unstable test.** This test fails more than half the time, '
+                         'indicating severe flakiness.\n\n')
+                  f.write('**Recommendation:** Block this PR and fix the flaky test.\n')
+              elif rate >= 0.1:
+                  f.write('🟡 **Clear flaky behavior.** This test fails intermittently '
+                         'but frequently enough to be problematic.\n\n')
+                  f.write('**Recommendation:** Should be fixed before merging.\n')
+              elif rate > 0:
+                  f.write('🟢 **Low-level flakiness.** This test occasionally fails '
+                         'but is mostly stable.\n\n')
+                  f.write('**Recommendation:** Monitor and consider fixing when time allows.\n')
+              else:
+                  f.write('✅ **No flaky behavior detected.** The test failure appears '
+                         'to be a one-time issue, possibly environmental.\n\n')
+                  f.write('**Recommendation:** Safe to retry or merge if tests pass on retry.\n')
+
+              # Failed runs sample
+              if result['failures'] > 0:
+                  f.write('\n### Sample Failed Runs\n\n')
+                  failed_runs = [r for r in result['results'] if not r['passed']][:5]
+                  for i, run in enumerate(failed_runs, 1):
+                      f.write(f'**Run #{run["attempt"]}:**\n')
+                      if run.get('stderr'):
+                          error_msg = run['stderr'][:200]
+                          f.write(f'```\n{error_msg}\n```\n\n')
+                      elif run.get('stdout'):
+                          output_msg = run['stdout'][:200]
+                          f.write(f'```\n{output_msg}\n```\n\n')
+
+              f.write('\n---\n\n')
+              f.write('*Detected by Serverless Flaky Test Detector*\n')
+          EOF
 
       - name: Post results to PR
         if: steps.extract-tests.outputs.pr_number != ''
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ steps.extract-tests.outputs.pr_number }}
-        run: |
-          python scripts/report_to_github.py
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const result = JSON.parse(fs.readFileSync('flaky_test_results.json', 'utf8'));
+
+            const rate = result.repro_rate;
+            let severity = '';
+            let severityEmoji = '';
+            if (rate >= 0.9) {
+              severity = 'CRITICAL';
+              severityEmoji = '🔴';
+            } else if (rate >= 0.5) {
+              severity = 'HIGH';
+              severityEmoji = '🟠';
+            } else if (rate >= 0.1) {
+              severity = 'MEDIUM';
+              severityEmoji = '🟡';
+            } else if (rate > 0) {
+              severity = 'LOW';
+              severityEmoji = '🟢';
+            } else {
+              severity = 'NONE';
+              severityEmoji = '✅';
+            }
+
+            const passed = result.total_runs - result.failures;
+
+            let body = `## ${severityEmoji} Flaky Test Detection Results
+
+            **Severity:** ${severity}
+
+            ### Summary
+            | Metric | Value |
+            |--------|-------|
+            | Total Runs | ${result.total_runs} |
+            | ✅ Passed | ${passed} |
+            | ❌ Failed | ${result.failures} |
+            | 📊 Failure Rate | ${(rate * 100).toFixed(1)}% |
+
+            `;
+
+            // Add interpretation
+            if (rate >= 0.9) {
+              body += `### ❌ Analysis: Real Bug Detected
+
+            This appears to be a **real bug**, not flaky behavior. The test fails ${(rate * 100).toFixed(1)}% of the time.
+
+            **Recommendation:** Fix the underlying issue before merging.
+            `;
+            } else if (rate >= 0.5) {
+              body += `### ⚠️ Analysis: Severe Flakiness
+
+            Very unstable test - fails ${(rate * 100).toFixed(1)}% of the time.
+
+            **Recommendation:** Block this PR and fix the flaky test.
+            `;
+            } else if (rate >= 0.1) {
+              body += `### 🟡 Analysis: Flaky Behavior Detected
+
+            Clear flaky behavior - test fails ${(rate * 100).toFixed(1)}% of the time.
+
+            **Recommendation:** Should be fixed before merging.
+            `;
+            } else if (rate > 0) {
+              body += `### 🟢 Analysis: Low-Level Flakiness
+
+            Test occasionally fails (${(rate * 100).toFixed(1)}% of the time) but is mostly stable.
+
+            **Recommendation:** Monitor and consider fixing when time allows.
+            `;
+            } else {
+              body += `### ✅ Analysis: No Flakiness Detected
+
+            The test failure appears to be a one-time issue.
+
+            **Recommendation:** Safe to retry or merge if tests pass on retry.
+            `;
+            }
+
+            // Add sample failures
+            if (result.failures > 0) {
+              const failedRuns = result.results.filter(r => !r.passed).slice(0, 3);
+              body += `\n### Sample Failed Runs\n\n`;
+              failedRuns.forEach(run => {
+                const errorMsg = run.stderr || run.stdout || 'No output';
+                body += `**Run #${run.attempt}:**\n\`\`\`\n${errorMsg.substring(0, 300)}\n\`\`\`\n\n`;
+              });
+            }
+
+            body += `\n---\n*Detected by [Serverless Flaky Test Detector](https://github.com/${context.repo.owner}/${context.repo.repo})*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.extract-tests.outputs.pr_number }},
+              body: body
+            });
 
       - name: Send Slack notification
-        if: always()
+        if: always() && env.SLACK_WEBHOOK_URL != ''
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          python scripts/report_to_slack.py
+          python << 'EOF'
+          import json
+          import os
+          import requests
+
+          webhook_url = os.environ.get('SLACK_WEBHOOK_URL')
+          if not webhook_url:
+              print("No Slack webhook URL configured, skipping notification")
+              exit(0)
+
+          # Load results
+          with open('flaky_test_results.json') as f:
+              result = json.load(f)
+
+          rate = result['repro_rate']
+          if rate >= 0.9:
+              severity = "🔴 CRITICAL"
+              color = "#d73a4a"
+          elif rate >= 0.5:
+              severity = "🟠 HIGH"
+              color = "#fb8500"
+          elif rate >= 0.1:
+              severity = "🟡 MEDIUM"
+              color = "#ffd60a"
+          elif rate > 0:
+              severity = "🟢 LOW"
+              color = "#2ea44f"
+          else:
+              severity = "✅ NONE"
+              color = "#2ea44f"
+
+          # Send notification
+          payload = {
+              "text": f"{severity} Flaky test detected",
+              "blocks": [
+                  {
+                      "type": "header",
+                      "text": {
+                          "type": "plain_text",
+                          "text": f"{severity} Flaky Test Detected"
+                      }
+                  },
+                  {
+                      "type": "section",
+                      "fields": [
+                          {
+                              "type": "mrkdwn",
+                              "text": f"*Repository:*\n{os.environ.get('GITHUB_REPOSITORY', 'Unknown')}"
+                          },
+                          {
+                              "type": "mrkdwn",
+                              "text": f"*Failure Rate:*\n{rate * 100:.1f}%"
+                          },
+                          {
+                              "type": "mrkdwn",
+                              "text": f"*Total Runs:*\n{result['total_runs']}"
+                          },
+                          {
+                              "type": "mrkdwn",
+                              "text": f"*Failed Runs:*\n{result['failures']}"
+                          }
+                      ]
+                  }
+              ],
+              "attachments": [
+                  {
+                      "color": color,
+                      "text": f"View details in GitHub Actions"
+                  }
+              ]
+          }
+
+          response = requests.post(webhook_url, json=payload)
+          if response.status_code == 200:
+              print("Slack notification sent successfully")
+          else:
+              print(f"Failed to send Slack notification: {response.status_code}")
+          EOF
 
       - name: Upload detailed results
         if: always()

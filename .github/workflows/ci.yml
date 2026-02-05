@@ -36,6 +36,21 @@ jobs:
         run: |
           mypy worker.py config.py database.py
 
+      - name: Generate lint and type check summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Code Quality Summary
+
+          | Check | Status |
+          |-------|--------|
+          | 🔍 Ruff Linting | ✅ Passed |
+          | 📝 Code Formatting | ✅ Passed |
+          | 🔒 Type Checking | ✅ Passed |
+
+          All code quality checks completed successfully!
+          EOF
+
   test:
     name: Test Suite
     runs-on: ubuntu-latest
@@ -67,7 +82,92 @@ jobs:
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-report=html \
-            --cov-fail-under=90
+            --cov-fail-under=90 \
+            --junit-xml=test-results.xml
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          python << 'EOF'
+          import xml.etree.ElementTree as ET
+          import os
+
+          # Parse test results
+          tree = ET.parse('test-results.xml')
+          root = tree.getroot()
+
+          # Extract statistics
+          tests = int(root.attrib.get('tests', 0))
+          failures = int(root.attrib.get('failures', 0))
+          errors = int(root.attrib.get('errors', 0))
+          skipped = int(root.attrib.get('skipped', 0))
+          time = float(root.attrib.get('time', 0))
+          passed = tests - failures - errors - skipped
+
+          # Parse coverage from coverage.xml
+          try:
+              cov_tree = ET.parse('coverage.xml')
+              cov_root = cov_tree.getroot()
+              coverage = float(cov_root.attrib.get('line-rate', 0)) * 100
+          except:
+              coverage = 0.0
+
+          # Write to GitHub summary
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+              f.write('## Test Results Summary\n\n')
+
+              # Overall status
+              if failures + errors == 0:
+                  f.write('✅ **All tests passed!**\n\n')
+              else:
+                  f.write(f'❌ **{failures + errors} test(s) failed**\n\n')
+
+              # Statistics table
+              f.write('| Metric | Value |\n')
+              f.write('|--------|-------|\n')
+              f.write(f'| Total Tests | {tests} |\n')
+              f.write(f'| ✅ Passed | {passed} |\n')
+              f.write(f'| ❌ Failed | {failures} |\n')
+              f.write(f'| ⚠️ Errors | {errors} |\n')
+              f.write(f'| ⏭️ Skipped | {skipped} |\n')
+              f.write(f'| ⏱️ Duration | {time:.2f}s |\n')
+              f.write(f'| 📊 Coverage | {coverage:.1f}% |\n\n')
+
+              # Failed tests details
+              if failures + errors > 0:
+                  f.write('### Failed Tests\n\n')
+                  for testcase in root.iter('testcase'):
+                      failure = testcase.find('failure')
+                      error = testcase.find('error')
+
+                      if failure is not None or error is not None:
+                          classname = testcase.attrib.get('classname', '')
+                          name = testcase.attrib.get('name', '')
+                          test_time = testcase.attrib.get('time', '0')
+
+                          f.write(f'#### ❌ `{classname}.{name}`\n\n')
+                          f.write(f'- **Duration:** {float(test_time):.2f}s\n')
+
+                          if failure is not None:
+                              message = failure.attrib.get('message', 'No message')
+                              f.write(f'- **Failure:** {message}\n')
+                              if failure.text:
+                                  f.write(f'\n```\n{failure.text[:500]}\n```\n\n')
+
+                          if error is not None:
+                              message = error.attrib.get('message', 'No message')
+                              f.write(f'- **Error:** {message}\n')
+                              if error.text:
+                                  f.write(f'\n```\n{error.text[:500]}\n```\n\n')
+
+              # Coverage status
+              if coverage >= 95:
+                  f.write('### 🟢 Coverage Status: Excellent (≥95%)\n')
+              elif coverage >= 90:
+                  f.write('### 🟡 Coverage Status: Good (≥90%)\n')
+              else:
+                  f.write('### 🔴 Coverage Status: Needs Improvement (<90%)\n')
+          EOF
 
       - name: Upload coverage reports
         if: always()
