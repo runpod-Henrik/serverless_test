@@ -57,9 +57,7 @@ class TestWorkflowStructure:
         )
         assert setup_python["with"]["python-version"] == "3.12"
 
-    def test_flaky_detector_triggers_on_workflow_run(
-        self, flaky_detector_workflow: dict
-    ) -> None:
+    def test_flaky_detector_triggers_on_workflow_run(self, flaky_detector_workflow: dict) -> None:
         """Test flaky detector triggers on workflow_run."""
         # Note: YAML 'on' keyword is parsed as boolean True
         triggers = flaky_detector_workflow[True]
@@ -68,26 +66,17 @@ class TestWorkflowStructure:
         assert "CI" in workflow_run["workflows"]
         assert "completed" in workflow_run["types"]
 
-    def test_flaky_detector_only_runs_on_failure(
-        self, flaky_detector_workflow: dict
-    ) -> None:
+    def test_flaky_detector_only_runs_on_failure(self, flaky_detector_workflow: dict) -> None:
         """Test flaky detector only runs on CI failure."""
         job = flaky_detector_workflow["jobs"]["detect-flaky-tests"]
-        assert (
-            "${{ github.event.workflow_run.conclusion == 'failure' }}"
-            in job["if"]
-        )
+        assert "${{ github.event.workflow_run.conclusion == 'failure' }}" in job["if"]
 
-    def test_flaky_detector_has_required_secrets(
-        self, flaky_detector_workflow: dict
-    ) -> None:
+    def test_flaky_detector_has_required_secrets(self, flaky_detector_workflow: dict) -> None:
         """Test flaky detector uses required secrets."""
         job = flaky_detector_workflow["jobs"]["detect-flaky-tests"]
         # Find the step that uses secrets
         detector_step = next(
-            step
-            for step in job["steps"]
-            if step.get("name") == "Run flaky test detector"
+            step for step in job["steps"] if step.get("name") == "Run flaky test detector"
         )
 
         env = detector_step.get("env", {})
@@ -238,6 +227,7 @@ class TestWorkflowScripts:
 
     def test_exit_code_capture(self) -> None:
         """Test exit code capture pattern."""
+
         # Simulate the workflow pattern
         class MockOutput:
             def __init__(self):

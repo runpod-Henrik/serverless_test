@@ -20,6 +20,6 @@ def test_order_processing_is_eventually_consistent():
     # Simulate race condition / timing window
     # 15–25% failure rate depending on timing + seed
     success_threshold = 0.18
-    assert processing_time < success_threshold, (
-        f"Order not processed in time (took {processing_time:.3f}s)"
-    )
+    assert (
+        processing_time < success_threshold
+    ), f"Order not processed in time (took {processing_time:.3f}s)"

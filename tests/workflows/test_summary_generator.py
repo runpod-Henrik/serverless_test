@@ -1,14 +1,10 @@
 """Tests for workflow test summary generator."""
 
-import os
-import tempfile
-import xml.etree.ElementTree as ET
+# Add scripts to path
+import sys
 from pathlib import Path
 
 import pytest
-
-# Add scripts to path
-import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 
