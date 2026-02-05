@@ -1,0 +1,13 @@
+# Files to exclude from clean repository
+__pycache__/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.mypy_cache/
+.coverage
+.claude/
+uv.lock
+flaky_test_results.json
+flaky_detector.db
+test_runpod_endpoint.py
+test_new_features.py

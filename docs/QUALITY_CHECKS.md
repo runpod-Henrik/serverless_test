@@ -214,8 +214,6 @@ actionlint -ignore 'SC2129:.*' -ignore 'SC2126:.*'
 python scripts/workflow_utils/validate_and_fix.py --ai-suggest
 ```
 
-**See:** [Workflow Validation Guide](AI_WORKFLOW_VALIDATION.md)
-
 ### 7. Pytest Configuration
 
 **Test runner configuration** with coverage integration.
@@ -570,8 +568,8 @@ This system prevents common failure patterns:
 
 - **[Preventing CI Failures →](PREVENTING_CI_FAILURES.md)** - Complete prevention guide with examples
 - **[Quick Reference →](QUICK_REFERENCE.md)** - Developer cheat sheet
-- **[Improvements Summary →](IMPROVEMENTS_SUMMARY.md)** - Before/after comparison and ROI
-- **[Workflow Validation →](AI_WORKFLOW_VALIDATION.md)** - AI-powered workflow validation
+- **[Architecture →](ARCHITECTURE.md)** - System design and internals
+- **[Getting Started →](GETTING_STARTED.md)** - Quick setup guide
 
 ---
 

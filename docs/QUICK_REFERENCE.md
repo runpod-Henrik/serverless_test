@@ -124,8 +124,8 @@ git commit && git push
 
 - **Preventing Failures:** `docs/PREVENTING_CI_FAILURES.md`
 - **Debugging Test Failures:** `docs/DEBUGGING_TEST_FAILURES.md`
-- **Workflow Validation:** `docs/AI_WORKFLOW_VALIDATION.md`
-- **Improvements Summary:** `docs/IMPROVEMENTS_SUMMARY.md`
+- **Quality Checks:** `docs/QUALITY_CHECKS.md`
+- **Architecture:** `docs/ARCHITECTURE.md`
 
 ## Emergency: Skip Hooks
 
@@ -154,7 +154,7 @@ Before pushing:
 ## Need Help?
 
 - CI failures: See `docs/PREVENTING_CI_FAILURES.md`
-- Workflow issues: See `docs/AI_WORKFLOW_VALIDATION.md`
+- Code quality: See `docs/QUALITY_CHECKS.md`
 - Team discussion: Ask in team chat
 
 ---

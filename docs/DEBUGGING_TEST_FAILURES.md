@@ -440,4 +440,4 @@ rm flaky_test_results.json
 - [PREVENTING_CI_FAILURES.md](PREVENTING_CI_FAILURES.md) - How to avoid failures
 - [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Command cheat sheet
 - [CICD_INTEGRATION.md](CICD_INTEGRATION.md) - Automated workflow setup
-- [HISTORICAL_TRACKING.md](HISTORICAL_TRACKING.md) - Track flakiness trends
+- [QUALITY_CHECKS.md](QUALITY_CHECKS.md) - Development standards

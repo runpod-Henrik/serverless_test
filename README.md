@@ -72,7 +72,6 @@ python scripts/validate_flaky_detector.py
 - **[Debugging Test Failures →](docs/DEBUGGING_TEST_FAILURES.md)** - AI-assisted root cause analysis workflow
 - **[Quick Reference →](docs/QUICK_REFERENCE.md)** - Developer cheat sheet
 - **[Quality Checks →](docs/QUALITY_CHECKS.md)** - All tools and configurations
-- **[Improvements Summary →](docs/IMPROVEMENTS_SUMMARY.md)** - Before/after & ROI analysis
 
 ## Features
 
@@ -124,7 +123,7 @@ python scripts/workflow_utils/validate_and_fix.py --ai-suggest
 **Note:** Validation works fully without an API key. AI suggestions are an optional enhancement.
 
 **Documentation:**
-- **[Workflow Validation Guide →](docs/AI_WORKFLOW_VALIDATION.md)** - Setting up automated validation
+- **[Quality Checks →](docs/QUALITY_CHECKS.md)** - All validation tools and setup
 - **[Preventing CI Failures →](docs/PREVENTING_CI_FAILURES.md)** - Best practices and common pitfalls
 
 ## Prerequisites
@@ -182,7 +181,7 @@ pip install -e ".[dev]"
 pip install -e ".[dashboard,dev]"
 ```
 
-**Note on Dependencies:** All package versions are pinned to specific releases (e.g., `pytest==9.0.2`) for reproducibility and stability. See [DEPENDENCIES.md](docs/DEPENDENCIES.md) for version management strategy and update procedures.
+**Note on Dependencies:** All package versions are pinned to specific releases (e.g., `pytest==9.0.2`) for reproducibility and stability. See `requirements.txt` for the complete list of pinned versions.
 
 **Optional Dependencies:**
 - `dashboard`: Streamlit-based interactive dashboard (streamlit, plotly, pandas)
@@ -202,7 +201,7 @@ ignore_patterns:
   - "test_known_flaky_*"    # Skip certain tests
 ```
 
-See [CONFIGURATION.md](docs/CONFIGURATION.md) for full reference.
+See [Configuration Guide](TEST_INPUT_FILES.md) for full reference.
 
 ## Historical Tracking & Dashboard
 
@@ -219,8 +218,6 @@ streamlit run dashboard.py
 - 🔥 Most flaky test commands
 - 🎯 Severity distribution charts
 - 📋 Filterable test run history
-
-See [HISTORICAL_TRACKING.md](docs/HISTORICAL_TRACKING.md) for complete guide.
 
 ## Local Development
 
@@ -839,27 +836,24 @@ runpod.Endpoint("your-endpoint-id").run({
 
 ## Documentation
 
-### Core Documentation
-- **[README.md](README.md)** - This file, project overview
-- **[docs/TUTORIAL.md](docs/TUTORIAL.md)** - Step-by-step guide to building the system
-- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** - How to deploy to RunPod
-- **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)** - Configuration file reference
+**📚 [Complete Documentation Index →](docs/README.md)**
 
-### CI/CD & Quality
-- **[docs/PREVENTING_CI_FAILURES.md](docs/PREVENTING_CI_FAILURES.md)** - ⭐ Multi-layer defense system guide
-- **[docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)** - ⭐ Developer cheat sheet
-- **[docs/QUALITY_CHECKS.md](docs/QUALITY_CHECKS.md)** - All tools and configurations
-- **[docs/IMPROVEMENTS_SUMMARY.md](docs/IMPROVEMENTS_SUMMARY.md)** - Before/after comparison & ROI
-- **[docs/AI_WORKFLOW_VALIDATION.md](docs/AI_WORKFLOW_VALIDATION.md)** - Workflow validation with optional AI
-- **[docs/CICD_INTEGRATION.md](docs/CICD_INTEGRATION.md)** - CI/CD integration guide
+### Getting Started
+- **[Getting Started Guide](docs/GETTING_STARTED.md)** - ⭐ Quick setup (5 minutes)
+- **[Quick Reference](docs/QUICK_REFERENCE.md)** - ⭐ Command cheat sheet
+- **[Configuration Guide](TEST_INPUT_FILES.md)** - Complete config reference
+- **[Migration Guide](MIGRATION.md)** - Moving to a new repo/org
 
-### Features & Tracking
-- **[docs/HISTORICAL_TRACKING.md](docs/HISTORICAL_TRACKING.md)** - Historical data tracking guide
-- **[docs/MULTI_LANGUAGE.md](docs/MULTI_LANGUAGE.md)** - Multi-language support (Go, TypeScript, etc.)
-- **[docs/SETUP_SECRETS.md](docs/SETUP_SECRETS.md)** - GitHub secrets setup guide
+### Guides & Workflows
+- **[CI/CD Integration](docs/CICD_INTEGRATION.md)** - GitHub Actions setup
+- **[Debugging Test Failures](docs/DEBUGGING_TEST_FAILURES.md)** - Complete workflow
+- **[Multi-Language Support](docs/MULTI_LANGUAGE.md)** - Go, TypeScript, JavaScript
+- **[Preventing CI Failures](docs/PREVENTING_CI_FAILURES.md)** - Multi-layer defense
 
-### Examples
-- **[examples/README.md](examples/README.md)** - Flaky test examples in 5 languages
+### Reference
+- **[Architecture](docs/ARCHITECTURE.md)** - System design & internals
+- **[Quality Checks](docs/QUALITY_CHECKS.md)** - Development standards
+- **[Examples](examples/README.md)** - Flaky test examples in 5 languages
 
 ### Quick Start Guides
 

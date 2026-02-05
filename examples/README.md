@@ -326,6 +326,6 @@ To add examples for new frameworks:
 
 ## 📖 Documentation
 
-- [MULTI_LANGUAGE.md](../MULTI_LANGUAGE.md) - Multi-language implementation guide
+- [docs/MULTI_LANGUAGE.md](../docs/MULTI_LANGUAGE.md) - Multi-language implementation guide
 - [README.md](../README.md) - Main project documentation
-- [TUTORIAL.md](../TUTORIAL.md) - Step-by-step tutorial
+- [docs/GETTING_STARTED.md](../docs/GETTING_STARTED.md) - Quick setup guide
