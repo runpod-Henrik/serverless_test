@@ -17,9 +17,9 @@ timeout: 900
 
 ```yaml
 # Test execution settings
-runs: 100                    # Number of times to run each test (1-1000)
-parallelism: 10             # Number of parallel workers (1-50)
-timeout: 600                # Timeout in seconds for entire job
+runs: 10                    # Number of times to run each test (default: 10, max: 1000)
+parallelism: 4              # Number of parallel workers (default: 4, max: 50)
+timeout: 300                # Timeout in seconds for test execution (default: 300)
 
 # Test command configuration
 test_command: "pytest tests/ -v"  # Override default test command

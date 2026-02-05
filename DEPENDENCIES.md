@@ -28,27 +28,43 @@ For a **production-ready serverless application**, stability and reproducibility
 
 ## Current Dependencies
 
-### Core Dependencies
+### Core Dependencies (Always Installed)
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `runpod` | 1.8.1 | RunPod serverless SDK |
-| `pytest` | 9.0.2 | Test framework |
-| `PyYAML` | 6.0.3 | YAML configuration parsing |
-| `streamlit` | 1.41.1 | Dashboard UI framework |
-| `plotly` | 5.24.1 | Interactive charts |
-| `pandas` | 2.2.3 | Data analysis for dashboard |
+| `runpod` | 1.8.1+ | RunPod serverless SDK |
+| `pytest` | 7.4.0+ | Test framework |
+| `PyYAML` | 6.0.0+ | YAML configuration parsing |
 
-### Development Tools
+**Installation:** `pip install -e .` or `uv sync`
+
+### Optional Dependencies: Dashboard
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `ruff` | 0.9.1 | Linting and formatting |
-| `mypy` | 1.14.1 | Static type checking |
-| `coverage` | 7.13.3 | Code coverage measurement |
-| `pytest-cov` | 7.0.0 | Pytest coverage plugin |
-| `types-PyYAML` | 6.0.12.20241230 | Type stubs for PyYAML |
-| `types-requests` | 2.32.0.20241231 | Type stubs for requests |
+| `streamlit` | 1.40.2+ | Dashboard UI framework |
+| `plotly` | 5.24.1+ | Interactive charts |
+| `pandas` | 2.2.3+ | Data analysis for dashboard |
+
+**Installation:** `pip install -e ".[dashboard]"` or `uv sync --extra dashboard`
+
+**When to install:** Only if you plan to use the interactive dashboard (`streamlit run dashboard.py`)
+
+### Optional Dependencies: Development Tools
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `ruff` | 0.8.4+ | Linting and formatting |
+| `mypy` | 1.14.0+ | Static type checking |
+| `pytest-cov` | 6.0.0+ | Pytest coverage plugin |
+
+**Installation:** `pip install -e ".[dev]"` or `uv sync --extra dev`
+
+**When to install:** Only if you're contributing to the project or running quality checks
+
+### Legacy Dependencies (via requirements.txt)
+
+For backward compatibility, `requirements.txt` includes all dependencies. However, the recommended approach is using `pyproject.toml` with optional extras.
 
 ## Updating Dependencies
 

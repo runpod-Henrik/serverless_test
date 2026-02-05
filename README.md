@@ -52,11 +52,40 @@ pip install -r requirements.txt
 git clone https://github.com/runpod-Henrik/serverless_test.git
 cd serverless_test
 
-# Install with uv
+# Install core dependencies
 uv sync
+
+# Install with dashboard support (optional)
+uv sync --extra dashboard
+
+# Install with development tools (optional)
+uv sync --extra dev
+
+# Install all extras
+uv sync --all-extras
+```
+
+### Option 3: Using pip with optional dependencies
+
+```bash
+# Core installation
+pip install -e .
+
+# With dashboard support
+pip install -e ".[dashboard]"
+
+# With development tools
+pip install -e ".[dev]"
+
+# With all optional dependencies
+pip install -e ".[dashboard,dev]"
 ```
 
 **Note on Dependencies:** All package versions are pinned to specific releases (e.g., `pytest==9.0.2`) for reproducibility and stability. See [DEPENDENCIES.md](DEPENDENCIES.md) for version management strategy and update procedures.
+
+**Optional Dependencies:**
+- `dashboard`: Streamlit-based interactive dashboard (streamlit, plotly, pandas)
+- `dev`: Development tools (ruff, mypy, pytest-cov)
 
 ## Configuration
 
