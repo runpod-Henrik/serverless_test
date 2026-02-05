@@ -1157,7 +1157,7 @@ anthropic==0.40.0  # Claude API
 
 **Cost Considerations:**
 
-- Claude Sonnet 4: ~$3 per million input tokens, ~$15 per million output tokens
+- Claude Sonnet 4: ~\$3 per million input tokens, ~$15 per million output tokens
 - Typical analysis: ~1000 input tokens + 500 output tokens
 - Cost per analysis: ~$0.01
 - With 100 PR failures/month: ~$1/month
@@ -1288,6 +1288,254 @@ def clone_private_repo(repo_url, token=None):
         # Use SSH (requires SSH keys configured in container)
         subprocess.run(['git', 'clone', repo_url, workdir], check=True)
 ```
+
+### Enhancement 7: Multi-Language Test Framework Support
+
+Extend the flaky test detector to support Go, TypeScript, and other programming languages beyond Python/pytest.
+
+**Why this matters:**
+- Flaky tests exist in all languages, not just Python
+- Many organizations have polyglot codebases (Python, Go, TypeScript, etc.)
+- Different languages have different test frameworks and randomness patterns
+- One tool for all your flaky test detection needs
+
+**What needs to change:**
+1. **Framework Detection** - Identify test framework from repo files
+2. **Dependency Installation** - Use language-specific package managers (pip, npm, go mod)
+3. **Seed Injection** - Each framework needs different environment variables
+4. **Multi-Runtime Docker Image** - Include Python, Node.js, and Go runtimes
+
+**Implementation approach:**
+
+**Step 1: Add framework detection**
+
+```python
+import json
+from typing import Literal
+
+FrameworkType = Literal["python", "go", "typescript-jest", "typescript-vitest", "javascript-mocha", "unknown"]
+
+def detect_framework(repo_path: str) -> FrameworkType:
+    """Detect test framework from repository files."""
+    # Check for Go
+    if os.path.exists(os.path.join(repo_path, "go.mod")):
+        return "go"
+
+    # Check for Node.js/TypeScript
+    package_json = os.path.join(repo_path, "package.json")
+    if os.path.exists(package_json):
+        try:
+            with open(package_json) as f:
+                pkg = json.load(f)
+                deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
+
+                if "jest" in deps:
+                    return "typescript-jest"
+                elif "vitest" in deps:
+                    return "typescript-vitest"
+                elif "mocha" in deps:
+                    return "javascript-mocha"
+        except Exception:
+            pass
+
+    # Check for Python
+    if os.path.exists(os.path.join(repo_path, "requirements.txt")) or \
+       os.path.exists(os.path.join(repo_path, "pyproject.toml")):
+        return "python"
+
+    return "unknown"
+```
+
+**Step 2: Language-specific dependency installation**
+
+```python
+def install_dependencies(framework: FrameworkType, repo_path: str) -> None:
+    """Install dependencies based on detected framework."""
+    install_commands = {
+        "python": ["pip", "install", "-q", "-r", "requirements.txt"],
+        "go": ["go", "mod", "download"],
+        "typescript-jest": ["npm", "install", "--silent"],
+        "typescript-vitest": ["npm", "install", "--silent"],
+        "javascript-mocha": ["npm", "install", "--silent"],
+    }
+
+    dependency_files = {
+        "python": "requirements.txt",
+        "go": "go.mod",
+        "typescript-jest": "package.json",
+        "typescript-vitest": "package.json",
+        "javascript-mocha": "package.json",
+    }
+
+    if framework not in install_commands:
+        return
+
+    dep_file = dependency_files[framework]
+    if not os.path.exists(os.path.join(repo_path, dep_file)):
+        return
+
+    try:
+        subprocess.run(
+            install_commands[framework],
+            check=True,
+            capture_output=True,
+            timeout=300,
+        )
+        print(f"✓ Installed {framework} dependencies")
+    except subprocess.CalledProcessError as e:
+        print(f"Warning: Failed to install dependencies: {e.stderr}")
+```
+
+**Step 3: Framework-specific seed injection**
+
+```python
+def get_seed_env_var(framework: FrameworkType, seed_value: int) -> dict[str, str]:
+    """Get appropriate environment variable for seeding tests."""
+    seed_vars = {
+        "python": {"TEST_SEED": str(seed_value)},
+        "go": {"GO_TEST_SEED": str(seed_value)},
+        "typescript-jest": {"JEST_SEED": str(seed_value)},
+        "typescript-vitest": {"VITE_TEST_SEED": str(seed_value)},
+        "javascript-mocha": {"MOCHA_SEED": str(seed_value)},
+    }
+    return seed_vars.get(framework, {"TEST_SEED": str(seed_value)})
+```
+
+**Step 4: Update handler to use framework detection**
+
+```python
+def handler(job):
+    # ... existing code ...
+
+    # Detect framework
+    framework = detect_framework(workdir)
+    print(f"Detected framework: {framework}")
+
+    # Install dependencies
+    install_dependencies(framework, workdir)
+
+    # Run tests with framework-specific seeds
+    for i in range(runs):
+        seed = random.randint(1, 1_000_000)
+        env_overrides = get_seed_env_var(framework, seed)
+        env_overrides["ATTEMPT"] = str(i)
+        # ... rest of test execution ...
+```
+
+**Step 5: Update Dockerfile for multi-language support**
+
+```dockerfile
+FROM runpod/base:0.4.0-cuda11.8.0
+
+# Install Python
+RUN apt-get update && apt-get install -y \
+    python3.12 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js for TypeScript/JavaScript tests
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Go
+RUN wget https://go.dev/dl/go1.22.0.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz && \
+    rm go1.22.0.linux-amd64.tar.gz
+
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Install Python dependencies
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY worker.py .
+COPY run.sh .
+RUN chmod +x run.sh
+
+# Verify installations
+RUN python3 --version && node --version && npm --version && go version
+
+CMD ["bash", "run.sh"]
+```
+
+**Example usage:**
+
+**Go project:**
+```json
+{
+  "repo": "https://github.com/your-org/go-project",
+  "test_command": "go test -v ./...",
+  "runs": 100,
+  "parallelism": 10,
+  "framework": "go"
+}
+```
+
+**TypeScript/Jest project:**
+```json
+{
+  "repo": "https://github.com/your-org/typescript-project",
+  "test_command": "npm test",
+  "runs": 100,
+  "parallelism": 10,
+  "framework": "typescript-jest"
+}
+```
+
+**Language-specific test setup:**
+
+For tests to use seeds properly, each language needs configuration:
+
+**Go (go.mod project):**
+```go
+// In your test file
+import (
+    "math/rand"
+    "os"
+    "strconv"
+    "testing"
+)
+
+func init() {
+    if seedStr := os.Getenv("GO_TEST_SEED"); seedStr != "" {
+        if seed, err := strconv.ParseInt(seedStr, 10, 64); err == nil {
+            rand.Seed(seed)
+        }
+    }
+}
+```
+
+**TypeScript/Jest (jest.setup.js):**
+```javascript
+const seed = parseInt(process.env.JEST_SEED || '42');
+const seedrandom = require('seedrandom');
+Math.random = seedrandom(seed);
+```
+
+**TypeScript/Vitest (vitest.config.ts):**
+```typescript
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  test: {
+    seed: parseInt(process.env.VITE_TEST_SEED || '42'),
+  }
+})
+```
+
+**Benefits:**
+- ✅ Detect flaky tests in any language
+- ✅ Single tool for polyglot organizations
+- ✅ Consistent flakiness metrics across projects
+- ✅ Framework auto-detection or manual override
+- ✅ Backward compatible with Python-only usage
+
+**See also:**
+- [MULTI_LANGUAGE.md](../MULTI_LANGUAGE.md) - Complete implementation guide
+- [examples/](../examples/) - Sample configurations for each language
 
 ### Additional Resources
 
