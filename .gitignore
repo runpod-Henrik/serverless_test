@@ -2,6 +2,7 @@ YOUR_CREDENTIALS.txt
 
 # Test accounts (contains credentials)
 test_accounts.json
+test_accounts.*.json
 
 # Python
 __pycache__/

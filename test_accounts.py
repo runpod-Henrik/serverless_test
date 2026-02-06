@@ -14,6 +14,10 @@ Usage:
     with checkout_account(account_type="admin") as account:
         run_admin_test(account)
 
+    # Specific environment
+    with checkout_account(environment="prod") as account:
+        run_prod_test(account)
+
     # Manual management
     manager = AccountManager()
     account = manager.checkout(timeout=300)
@@ -24,13 +28,38 @@ Usage:
 """
 
 import json
+import os
 import threading
 import time
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
+
+
+class Environment(StrEnum):
+    """Test environment types."""
+
+    LOCAL = "local"
+    DEV = "dev"
+    STAGING = "staging"
+    PROD = "prod"
+    CI = "ci"
+
+
+def get_current_environment() -> str:
+    """
+    Get current environment from environment variable.
+
+    Checks TEST_ENVIRONMENT or ENVIRONMENT variable.
+    Defaults to "local" if not set.
+
+    Returns:
+        Environment name as string
+    """
+    return os.environ.get("TEST_ENVIRONMENT", os.environ.get("ENVIRONMENT", "local"))
 
 
 @dataclass
@@ -42,6 +71,7 @@ class Account:
     password: str
     email: str
     account_type: str = "standard"
+    environment: str = "local"
     metadata: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -79,10 +109,41 @@ class AccountStorage:
 
 
 class FileStorage(AccountStorage):
-    """File-based storage for test accounts."""
+    """
+    File-based storage for test accounts.
 
-    def __init__(self, accounts_file: str = "test_accounts.json"):
-        self.accounts_file = Path(accounts_file)
+    Supports environment-specific account files:
+    - test_accounts.local.json
+    - test_accounts.dev.json
+    - test_accounts.prod.json
+    """
+
+    def __init__(
+        self,
+        accounts_file: str | None = None,
+        environment: str | None = None,
+        auto_env: bool = True,
+    ):
+        """
+        Initialize file storage.
+
+        Args:
+            accounts_file: Specific file path (overrides environment)
+            environment: Environment name (local, dev, prod, etc.)
+            auto_env: Automatically use environment-specific files
+        """
+        self.environment = environment or get_current_environment()
+        self.auto_env = auto_env
+
+        if accounts_file:
+            # Use specific file
+            self.accounts_file = Path(accounts_file)
+        elif auto_env:
+            # Use environment-specific file
+            self.accounts_file = Path(f"test_accounts.{self.environment}.json")
+        else:
+            # Use default file
+            self.accounts_file = Path("test_accounts.json")
 
     def load_accounts(self) -> list[Account]:
         """Load accounts from JSON file."""
@@ -108,42 +169,65 @@ class FileStorage(AccountStorage):
             json.dump(data, f, indent=2)
 
     def _create_default_accounts(self) -> list[Account]:
-        """Create default test accounts."""
+        """Create default test accounts for current environment."""
+        env = self.environment
+
+        # Customize credentials based on environment
+        if env == "prod":
+            # Prod accounts should use real/1Password credentials
+            # These are just placeholders
+            password_suffix = "_Prod2026!"
+            email_domain = "prod.example.com"
+        elif env == "staging":
+            password_suffix = "_Stage2026!"
+            email_domain = "staging.example.com"
+        elif env == "dev":
+            password_suffix = "_Dev2026!"
+            email_domain = "dev.example.com"
+        else:  # local, ci, etc.
+            password_suffix = "_Test123!"
+            email_domain = "example.com"
+
         return [
             Account(
-                id="test-user-1",
-                username="testuser1",
-                password="TestPass123!",
-                email="testuser1@example.com",
+                id=f"test-user-1-{env}",
+                username=f"testuser1-{env}",
+                password=f"TestPass{password_suffix}",
+                email=f"testuser1@{email_domain}",
                 account_type="standard",
+                environment=env,
             ),
             Account(
-                id="test-user-2",
-                username="testuser2",
-                password="TestPass123!",
-                email="testuser2@example.com",
+                id=f"test-user-2-{env}",
+                username=f"testuser2-{env}",
+                password=f"TestPass{password_suffix}",
+                email=f"testuser2@{email_domain}",
                 account_type="standard",
+                environment=env,
             ),
             Account(
-                id="test-user-3",
-                username="testuser3",
-                password="TestPass123!",
-                email="testuser3@example.com",
+                id=f"test-user-3-{env}",
+                username=f"testuser3-{env}",
+                password=f"TestPass{password_suffix}",
+                email=f"testuser3@{email_domain}",
                 account_type="standard",
+                environment=env,
             ),
             Account(
-                id="test-admin-1",
-                username="testadmin1",
-                password="AdminPass123!",
-                email="testadmin1@example.com",
+                id=f"test-admin-1-{env}",
+                username=f"testadmin1-{env}",
+                password=f"AdminPass{password_suffix}",
+                email=f"testadmin1@{email_domain}",
                 account_type="admin",
+                environment=env,
             ),
             Account(
-                id="test-premium-1",
-                username="testpremium1",
-                password="PremiumPass123!",
-                email="testpremium1@example.com",
+                id=f"test-premium-1-{env}",
+                username=f"testpremium1-{env}",
+                password=f"PremiumPass{password_suffix}",
+                email=f"testpremium1@{email_domain}",
                 account_type="premium",
+                environment=env,
             ),
         ]
 
@@ -206,11 +290,13 @@ class AccountManager:
     - Automatic timeout and cleanup
     - Parallel test execution
     - Account type filtering
+    - Environment isolation
     """
 
     def __init__(
         self,
         storage: AccountStorage | None = None,
+        environment: str | None = None,
         default_timeout: int = 300,
         cleanup_interval: int = 60,
     ):
@@ -218,11 +304,13 @@ class AccountManager:
         Initialize account manager.
 
         Args:
-            storage: Storage backend (defaults to FileStorage)
+            storage: Storage backend (defaults to FileStorage with environment)
+            environment: Environment name (auto-detected if None)
             default_timeout: Default checkout timeout in seconds
             cleanup_interval: How often to check for expired checkouts (seconds)
         """
-        self.storage = storage or FileStorage()
+        self.environment = environment or get_current_environment()
+        self.storage = storage or FileStorage(environment=self.environment)
         self.default_timeout = default_timeout
 
         # Load accounts
@@ -241,6 +329,7 @@ class AccountManager:
         self,
         account_type: str | None = None,
         account_id: str | None = None,
+        environment: str | None = None,
         timeout: int | None = None,
         requester: str | None = None,
     ) -> Account:
@@ -250,6 +339,7 @@ class AccountManager:
         Args:
             account_type: Filter by account type (e.g., "admin", "premium")
             account_id: Request specific account by ID
+            environment: Filter by environment (defaults to manager's environment)
             timeout: Checkout timeout in seconds
             requester: Identifier for who's checking out (for debugging)
 
@@ -261,15 +351,16 @@ class AccountManager:
         """
         timeout = timeout or self.default_timeout
         requester = requester or threading.current_thread().name
+        environment = environment or self.environment
 
         with self._lock:
             # Find available account
-            available = self._find_available_account(account_type, account_id)
+            available = self._find_available_account(account_type, account_id, environment)
 
             if not available:
                 raise RuntimeError(
                     f"No available accounts "
-                    f"(type={account_type}, id={account_id}). "
+                    f"(type={account_type}, id={account_id}, env={environment}). "
                     f"Current checkouts: {len(self._checkouts)}/{len(self._accounts)}"
                 )
 
@@ -297,7 +388,7 @@ class AccountManager:
                 del self._checkouts[account_id]
 
     def _find_available_account(
-        self, account_type: str | None, account_id: str | None
+        self, account_type: str | None, account_id: str | None, environment: str | None
     ) -> Account | None:
         """Find an available account matching criteria."""
         for acc_id, account in self._accounts.items():
@@ -311,6 +402,10 @@ class AccountManager:
 
             # Filter by type
             if account_type and account.account_type != account_type:
+                continue
+
+            # Filter by environment
+            if environment and account.environment != environment:
                 continue
 
             return account
@@ -382,6 +477,7 @@ def get_account_manager() -> AccountManager:
 def checkout_account(
     account_type: str | None = None,
     account_id: str | None = None,
+    environment: str | None = None,
     timeout: int | None = None,
 ):
     """
@@ -398,16 +494,25 @@ def checkout_account(
         with checkout_account(account_type="admin") as admin:
             run_admin_test(admin)
 
+        with checkout_account(environment="prod") as prod_account:
+            run_prod_test(prod_account)
+
     Args:
         account_type: Filter by account type
         account_id: Request specific account
+        environment: Filter by environment (defaults to current environment)
         timeout: Checkout timeout in seconds
 
     Yields:
         Account object
     """
     manager = get_account_manager()
-    account = manager.checkout(account_type=account_type, account_id=account_id, timeout=timeout)
+    account = manager.checkout(
+        account_type=account_type,
+        account_id=account_id,
+        environment=environment,
+        timeout=timeout,
+    )
 
     try:
         yield account
